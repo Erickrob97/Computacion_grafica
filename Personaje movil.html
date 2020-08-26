@@ -93,12 +93,21 @@
 				var gridHelperXZ = new THREE.GridHelper( size, divisions, color2, color2 );
 				gridHelperXZ.rotateOnWorldAxis ( y, THREE.Math.degToRad(90) );
 				
+				var geotorso = new THREE.BoxGeometry(10,15,5);
+				
+				
+				var material = new THREE.MeshBasicMaterial({ color: 0xAAAAAA });
+				
+				var cuerpo = new THREE.Mesh(geotorso,material);
+				
 				
 				scene.add( gridHelperXZ );
+				scene.add(cuerpo);
 				
-				camera.position.x = 10;
-				camera.position.y = 10;
-				camera.position.z = 10;
+				
+				camera.position.x = 75;
+				camera.position.y = 75;
+				camera.position.z = 75;
 				camera.lookAt (origin);
 				
 				renderer.render( scene, camera);
