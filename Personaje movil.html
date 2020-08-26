@@ -18,14 +18,20 @@
 		<div id="info"> movimiento -> WASD </div>
 		
 		<script src="js/three.min.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
 		<script>
-			var scene, aspect, camera, renderer;
+			var scene, aspect, camera, renderer, controls;
 			var startTime = Date.now();
+			
+			var geotorso, geopierna, geobrazo;
 			
 			var up = false;
 			var down = false;
 			var left = false;
 			var right = false;
+			
+			var cuerpo;
+			var pierna1,pierna2,brazo1,brazo2;
 			
 			var angSum = 0;
 			var positivo = false;
@@ -40,6 +46,7 @@
 				renderer = new THREE.WebGLRenderer();
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
+				controls = new THREE.OrbitControls( camera, renderer.domElement);
 				
 				var onKeyDown = function(event){
 					switch(event.keyCode){
@@ -93,14 +100,31 @@
 				var gridHelperXZ = new THREE.GridHelper( size, divisions, color2, color2 );
 				gridHelperXZ.rotateOnWorldAxis ( y, THREE.Math.degToRad(90) );
 				
-				var geotorso = new THREE.BoxGeometry(10,15,5);
+				geotorso = new THREE.BoxGeometry(10,15,5);
+				geopierna = new THREE.CylinderGeometry(2,2,10,50);
+				geobrazo = new THREE.CylinderGeometry(1.5,1.5,10,50);
 				
+				var material = new THREE.MeshBasicMaterial({ color: 0x387fff ,vertexColors: THREE.FaceColors});
 				
-				var material = new THREE.MeshBasicMaterial({ color: 0xAAAAAA });
+				cuerpo = new THREE.Mesh(geotorso,material);
+				pierna1 = new THREE.Mesh(geopierna,material);
+				brazo1 = new THREE.Mesh(geobrazo,material);
+				brazo2 = brazo1.clone();
 				
-				var cuerpo = new THREE.Mesh(geotorso,material);
+				cuerpo.add(pierna1);
+				pierna1.position.x-=2.5;
+				pierna1.position.y-=10;
+				pierna2 = pierna1.clone();
+				cuerpo.add(pierna2);
+				pierna2.position.x+=5;
+				cuerpo.add(brazo1);
+				brazo1.rotateOnWorldAxis(z, THREE.Math.degToRad(30));
+				brazo1.position.x+=6;
+				cuerpo.add(brazo2);
+				brazo2.rotateOnWorldAxis(z, THREE.Math.degToRad(-30));
+				brazo2.position.x-=6;
 				
-				
+				cuerpo.position.set(1,15,1);
 				scene.add( gridHelperXZ );
 				scene.add(cuerpo);
 				
@@ -115,16 +139,92 @@
 			
 			function animate(){
 				render();
+				controls.update();
 				requestAnimationFrame( animate );
 			}
 			
 			function render(){
+				var dtime= Date.now()-startTime;
+				var tx=0,ty=0,tz=0;
+				var rotP=0;
+				var rot=0;
 				
+				if(angSum>=60*Math.PI/180)
+					positivo=false;
+				if(angSum<=-60*Math.PI/180)
+					positivo=true;
+					
+				if(up){
+					tx=0; ty=0; tz=1;
+			if(positivo)
+				rotP = .1;
+			else
+				rotP = -.1;
+				}
+				if(down){
+				tx=0; ty=0; tz=-1;
+			if(positivo)
+				rotP = .1;
+			else
+				rotP = -.1;
+				}
+				angSum+=rotP;
 				
+				if(right)
+					rot=-.1;
+				if(left)
+					rot=.1;
+				
+				var t = new THREE.Matrix4();
+				t.set( 	1, 0, 0, tx,
+					0, 1, 0, ty, 
+					0, 0, 1, tz,
+					0, 0, 0, 1	);
+				console.lo
+				cuerpo.matrix.multiply(t);
+				
+				var ct1 = Math.cos(rotP);
+				var ct2 = Math.cos(-rotP);
+				var cs = Math.cos(rot);
+				var st1 = Math.sin(rotP);
+				var st2 = Math.sin(-rotP);
+				var ss = Math.sin(rot);
+				var r = new THREE.Matrix4();
+				var r1 = new THREE.Matrix4();
+				var r2 = new THREE.Matrix4();
+				
+				r.set( 	   cs,  0, ss, 0,
+						0,  1,  0, 0, 
+						-ss,  0, cs, 0,
+						0,  0,  0, 1 );	
+					
+				r1.set( 	1,  0,  0, 0,
+						0, ct1,-st1, 0, 
+						0, st1, ct1, 0,
+						0,  0,  0, 1 );	
+				r2.set( 	1,  0,  0, 0,
+						0, ct2,-st2, 0, 
+						0, st2, ct2, 0,
+						0,  0,  0, 1 );
+				
+				var tempMatrix = new THREE.Matrix4();
+				tempMatrix.copyPosition(cuerpo.matrix);
+				cuerpo.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
+				cuerpo.applyMatrix(r);
+				cuerpo.applyMatrix( tempMatrix );
+				
+				var r1i=new THREE.Matrix4().getInverse(r1);
+				var r2i=new THREE.Matrix4().getInverse(r2);
+				
+				pierna1.applyMatrix(r1);
+				pierna2.applyMatrix(r2);
+				brazo1.applyMatrix(r1);
+				brazo2.applyMatrix(r2);
 				
 				
 				camera.lookAt(0,0,0);
 				renderer.render( scene, camera );
+				console.log(tempMatrix);
 			}
 			
 		</script>
