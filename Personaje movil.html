@@ -32,9 +32,11 @@
 			
 			var cuerpo;
 			var pierna1,pierna2,brazo1,brazo2;
+			var caja;
 			
 			var angSum = 0;
 			var positivo = false;
+			var res = 25;
 			
 			init();
 			animate();
@@ -47,6 +49,100 @@
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
 				controls = new THREE.OrbitControls( camera, renderer.domElement);
+				
+				function GeoCaja(x,y,z){
+					var geometria = new THREE.Geometry();
+					for(var i = 0; i <= x; i++){
+						for(var j = 0; j <= y; j++){
+							var punto = new THREE.Vector3();
+							punto.x = i;
+							punto.y = j;
+							punto.z=0;
+							geometria.vertices.push(punto);
+						}
+					}
+					
+					for(var i = 0; i <= x; i++){
+						for(var j = 0; j <= z; j++){
+							var punto = new THREE.Vector3();
+							punto.x = i;
+							punto.y = y;
+							punto.z=j;
+							geometria.vertices.push(punto);
+						}
+					}
+					for(var i = 0; i <= z; i++){
+						for(var j = 0; j <= y; j++){
+							var punto = new THREE.Vector3();
+							punto.x = x;
+							punto.y = j;
+							punto.z=i;
+							geometria.vertices.push(punto);
+						}
+					}
+					for(var i = 0; i <= x; i++){
+						for(var j = 0; j <= z; j++){
+							var punto = new THREE.Vector3();
+							punto.x = i;
+							punto.y = 0;
+							punto.z=j;
+							geometria.vertices.push(punto);
+						}
+					}
+					for(var i = 0; i <= x; i++){
+						for(var j = 0; j <= y; j++){
+							var punto = new THREE.Vector3();
+							punto.x = i;
+							punto.y = j;
+							punto.z=z;
+							geometria.vertices.push(punto);
+						}
+					}
+					
+					for(var i = 0; i <= z; i++){
+						for(var j = 0; j <= y; j++){
+							var punto = new THREE.Vector3();
+							punto.x = 0;
+							punto.y = j;
+							punto.z=i;
+							geometria.vertices.push(punto);
+						}
+					}
+					
+					return geometria;
+				}
+				
+				function GeoCilindro(r,y){
+					var geometria = new THREE.Geometry();
+					for( var i = 0; i < res; i++){
+						for( var j = 0; j < res; j++){
+							var punto = new THREE.Vector3();
+							punto.x = r * Math.cos( ( j * 2 * Math.PI )/res);
+							punto.y = y * i/res;
+							punto.z = r * Math.sin( ( j * 2 * Math.PI )/res);
+							geometria.vertices.push( punto );
+						}
+					}
+					for( var i = 0; i < res; i++){
+						for( var j = 0; j < res; j++){
+							var punto = new THREE.Vector3();
+							punto.x = (r* (res - i) / res ) * Math.cos( ( j * 2.0 * Math.PI ) / res) ;
+							punto.y = 0;
+							punto.z = (r * (res - i) / res ) * Math.sin( ( j * 2.0 * Math.PI ) / res) ;
+							geometria.vertices.push( punto );
+						}
+					}
+					for( var i = 0; i < res; i++){
+						for( var j = 0; j < res; j++){
+							var punto = new THREE.Vector3();
+							punto.x = (r* (res - i) / res ) * Math.cos( ( j * 2.0 * Math.PI ) / res) ;
+							punto.y = y;
+							punto.z = (r * (res - i) / res ) * Math.sin( ( j * 2.0 * Math.PI ) / res) ;
+							geometria.vertices.push( punto );
+						}
+					}
+					return geometria;
+				}
 				
 				var onKeyDown = function(event){
 					switch(event.keyCode){
@@ -100,29 +196,38 @@
 				var gridHelperXZ = new THREE.GridHelper( size, divisions, color2, color2 );
 				gridHelperXZ.rotateOnWorldAxis ( y, THREE.Math.degToRad(90) );
 				
-				geotorso = new THREE.BoxGeometry(10,15,5);
-				geopierna = new THREE.CylinderGeometry(2,2,10,50);
-				geobrazo = new THREE.CylinderGeometry(1.5,1.5,10,50);
+				geotorso = GeoCaja(10,15,5);
+				geopierna = GeoCilindro(2,10);
+				geobrazo = GeoCilindro(1.5,10);
+				
 				
 				var material = new THREE.MeshBasicMaterial({ color: 0x387fff ,vertexColors: THREE.FaceColors});
+				var matPunto = new THREE.PointsMaterial( { color: 0x387fff, size: 0.5 } );
 				
-				cuerpo = new THREE.Mesh(geotorso,material);
-				pierna1 = new THREE.Mesh(geopierna,material);
-				brazo1 = new THREE.Mesh(geobrazo,material);
+				cuerpo = new THREE.Points(geotorso,matPunto);
+				pierna1 = new THREE.Points(geopierna,matPunto);
+				brazo1 = new THREE.Points(geobrazo,matPunto);
 				brazo2 = brazo1.clone();
 				
+				
+				
+				
 				cuerpo.add(pierna1);
-				pierna1.position.x-=2.5;
+				pierna1.position.x+=2.5;
 				pierna1.position.y-=10;
+				pierna1.position.z+=2.5;
 				pierna2 = pierna1.clone();
 				cuerpo.add(pierna2);
 				pierna2.position.x+=5;
 				cuerpo.add(brazo1);
-				brazo1.rotateOnWorldAxis(z, THREE.Math.degToRad(30));
-				brazo1.position.x+=6;
+				brazo1.rotateOnWorldAxis(z, THREE.Math.degToRad(210));
+				brazo1.position.x+=10;
 				cuerpo.add(brazo2);
-				brazo2.rotateOnWorldAxis(z, THREE.Math.degToRad(-30));
-				brazo2.position.x-=6;
+				brazo2.rotateOnWorldAxis(z, THREE.Math.degToRad(-210));
+				brazo1.position.z+=2.5;
+				brazo2.position.z+=2.5;
+				brazo1.position.y+=10;
+				brazo2.position.y+=10;
 				
 				cuerpo.position.set(1,15,1);
 				scene.add( gridHelperXZ );
@@ -218,13 +323,22 @@
 				
 				pierna1.applyMatrix(r1);
 				pierna2.applyMatrix(r2);
+				
+				var tempMatrix = new THREE.Matrix4();
+				tempMatrix.copyPosition(brazo1.matrix);
+				brazo1.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
 				brazo1.applyMatrix(r1);
+				brazo1.applyMatrix( tempMatrix );
+				
+				var tempMatrix = new THREE.Matrix4();
+				tempMatrix.copyPosition(brazo2.matrix);
+				brazo2.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
 				brazo2.applyMatrix(r2);
+				brazo2.applyMatrix( tempMatrix );
 				
 				
 				camera.lookAt(0,0,0);
 				renderer.render( scene, camera );
-				console.log(tempMatrix);
 			}
 			
 		</script>
