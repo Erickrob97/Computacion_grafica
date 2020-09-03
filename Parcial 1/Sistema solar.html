@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Sistela solar</title>
+		<style>
+			html, body { margin: 0;padding: 0;overflow: hidden; }
+			#info {
+				position: absolute;
+				padding: 10px;
+				width: 100%;
+				text-align: center;
+				color: #FFFFFF;
+			}
+		</style>
+	</head>
+	<body>
+		<script src="js/three.min.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script>
+		
+		var scene, aspect, camera, renderer;
+		var startTime = Date.now();
+		var sol, mercurio, venus, tierra, marte, jupiter, saturno, urano, neptuno, pluton;
+		var luna;
+		
+		init();
+		animate();
+		
+		function init(){
+			scene = new THREE.Scene();
+			aspect = window.innerWidth / window.innerHeight;
+			camera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+			controls = new THREE.OrbitControls( camera, renderer.domElement);
+			
+			var geoSol = new THREE.SphereGeometry(5,50,50);
+			var geoMer = new THREE.SphereGeometry(0.5,50,50);
+			var geoVen = new THREE.SphereGeometry(1.2,50,50);
+			var geoTie = new THREE.SphereGeometry(1.2,50,50);
+			var geoMar = new THREE.SphereGeometry(0.8,50,50);
+			var geoJup = new THREE.SphereGeometry(7.1,50,50);
+			var geoSat = new THREE.SphereGeometry(6.0,50,50);
+			var geoUra = new THREE.SphereGeometry(2.5,50,50);
+			var geoNep = new THREE.SphereGeometry(2.4,50,50);
+			var geoPlu = new THREE.SphereGeometry(0.2,50,50);
+			
+			var geoLuna = new THREE.SphereGeometry(0.25,50,50);
+			
+			var matSol = new THREE.MeshBasicMaterial({ color: 0xfff249 });
+			var matMer = new THREE.MeshBasicMaterial({ color: 0xf40800 });
+			var matVen = new THREE.MeshBasicMaterial({ color: 0xff6514 });
+			var matTie = new THREE.MeshBasicMaterial({ color: 0x40e64b });
+			var matMar = new THREE.MeshBasicMaterial({ color: 0xcc585d });
+			var matJup = new THREE.MeshBasicMaterial({ color: 0x9e6600 });
+			var matSat = new THREE.MeshBasicMaterial({ color: 0xf09b00 });
+			var matUra = new THREE.MeshBasicMaterial({ color: 0x1fe0ff });
+			var matNep = new THREE.MeshBasicMaterial({ color: 0x3f79dc });
+			var matPlu = new THREE.MeshBasicMaterial({ color: 0xffffff });
+			
+			var matLuna = new THREE.MeshBasicMaterial({ color: 0x969696 });
+			
+			sol = new THREE.Mesh(geoSol,matSol);
+			mercurio = new THREE.Mesh(geoMer,matMer);
+			venus = new THREE.Mesh(geoVen,matVen);
+			tierra = new THREE.Mesh(geoTie,matTie);
+			marte = new THREE.Mesh(geoMar,matMar);
+			jupiter = new THREE.Mesh(geoJup,matJup);
+			saturno = new THREE.Mesh(geoSat,matSat);
+			urano = new THREE.Mesh(geoUra,matUra);
+			neptuno = new THREE.Mesh(geoNep,matNep);
+			pluton = new THREE.Mesh(geoPlu,matPlu);
+			
+			luna = new THREE.Mesh(geoLuna,matLuna);
+			
+			var rSol = 10;
+			
+			sol.add(mercurio);
+			sol.add(venus);
+			sol.add(tierra);
+			sol.add(marte);
+			sol.add(jupiter);
+			sol.add(saturno);
+			sol.add(urano);
+			sol.add(neptuno);
+			sol.add(pluton);
+			mercurio.position.x+=rSol+5.7
+			venus.position.x+=rSol+10.8
+			tierra.position.x+=rSol+14.9
+			marte.position.x+=rSol+22.7
+			jupiter.position.x+=rSol+77.8
+			saturno.position.x+=rSol+142.9
+			urano.position.x+=rSol+187
+			neptuno.position.x+=rSol+250
+			pluton.position.x+=rSol+319
+			
+			luna.position.x+=3
+			tierra.add(luna);
+			
+			
+			scene.add(sol);
+			
+			camera.position.set(-200,100,0);
+			camera.lookAt(0,0,0);
+			
+			renderer.render(scene,camera);
+		}
+		
+		function animate(){
+			render();
+			controls.update();
+			requestAnimationFrame(animate);
+		}
+		
+		function render(){
+			var dtime= Date.now()-startTime;
+			var mer=0.0409,ven=0.016,tie=0.01,mar=0.005,jup=0.0008,sat=0.00032,ura=0.000117,nep=0.00006,plu=0.000039,lun=0.13;
+			var Crot = Math.cos(mer);
+			var Srot = Math.sin(mer);
+			var rotMer = new THREE.Matrix4();
+			rotMer.set(Crot, 0 , Srot, 0 , 
+						0 , 1 , 0 , 0 ,
+						-Srot, 0 ,Crot, 0 ,
+						0 , 0 , 0 , 1);
+			mercurio.applyMatrix(rotMer);
+			
+			Crot = Math.cos(ven);
+			Srot = Math.sin(ven);
+			var rotVen = new THREE.Matrix4();
+			rotVen.set(Crot, 0 , Srot, 0 , 
+						0 , 1 , 0 , 0 ,
+						-Srot, 0 ,Crot, 0 ,
+						0 , 0 , 0 , 1);
+			venus.applyMatrix(rotVen);
+			
+			Crot = Math.cos(tie);
+			Srot = Math.sin(tie);
+			var rotTie = new THREE.Matrix4();
+			rotTie.set(Crot, 0 , Srot, 0 , 
+						0 , 1 , 0 , 0 ,
+						-Srot, 0 ,Crot, 0 ,
+						0 , 0 , 0 , 1);
+			tierra.applyMatrix(rotTie);
+			
+			Crot = Math.cos(mar);
+			Srot = Math.sin(mar);
+			var rotMar = new THREE.Matrix4();
+			rotMar.set(Crot, 0 , Srot, 0 , 
+						0 , 1 , 0 , 0 ,
+						-Srot, 0 ,Crot, 0 ,
+						0 , 0 , 0 , 1);
+			marte.applyMatrix(rotMar);
+			
+			Crot = Math.cos(jup);
+			Srot = Math.sin(jup);
+			var rotJup = new THREE.Matrix4();
+			rotJup.set(Crot, 0 , Srot, 0 , 
+						0 , 1 , 0 , 0 ,
+						-Srot, 0 ,Crot, 0 ,
+						0 , 0 , 0 , 1);
+			jupiter.applyMatrix(rotJup);
+			
+			Crot = Math.cos(sat);
+			Srot = Math.sin(sat);
+			var rotSat = new THREE.Matrix4();
+			rotSat.set(Crot, 0 , Srot, 0 , 
+						0 , 1 , 0 , 0 ,
+						-Srot, 0 ,Crot, 0 ,
+						0 , 0 , 0 , 1);
+			saturno.applyMatrix(rotSat);
+			
+			Crot = Math.cos(ura);
+			Srot = Math.sin(ura);
+			var rotUra = new THREE.Matrix4();
+			rotUra.set(Crot, 0 , Srot, 0 , 
+						0 , 1 , 0 , 0 ,
+						-Srot, 0 ,Crot, 0 ,
+						0 , 0 , 0 , 1);
+			urano.applyMatrix(rotUra);
+			
+			Crot = Math.cos(nep);
+			Srot = Math.sin(nep);
+			var rotNep = new THREE.Matrix4();
+			rotNep.set(Crot, 0 , Srot, 0 , 
+						0 , 1 , 0 , 0 ,
+						-Srot, 0 ,Crot, 0 ,
+						0 , 0 , 0 , 1);
+			neptuno.applyMatrix(rotNep);
+			
+			Crot = Math.cos(plu);
+			Srot = Math.sin(plu);
+			var rotPlu = new THREE.Matrix4();
+			rotPlu.set(Crot, 0 , Srot, 0 , 
+						0 , 1 , 0 , 0 ,
+						-Srot, 0 ,Crot, 0 ,
+						0 , 0 , 0 , 1);
+			pluton.applyMatrix(rotPlu);
+			
+			Crot = Math.cos(lun);
+			Srot = Math.sin(lun);
+			var rotLun = new THREE.Matrix4();
+			rotLun.set(Crot, -Srot , 0, 0 , 
+						Srot, Crot , 0 , 0 ,
+						0, 0 ,1, 0 ,
+						0 , 0 , 0 , 1);
+			luna.applyMatrix(rotLun);
+			
+			renderer.render(scene,camera);
+		}
+		</script>
+	</body>
+</html>

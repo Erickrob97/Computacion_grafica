@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Transformaciones punto 1</title>
+		<style>
+			html, body { margin: 0;padding: 0;overflow: hidden; }
+			#info {
+				position: absolute;
+				padding: 10px;
+				width: 100%;
+				text-align: center;
+				color: #FFFFFF;
+			}
+		</style>
+	</head>
+	<body>
+		<script src="js/three.min.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script>
+		
+		var scene, aspect, camera, renderer;
+		var startTime = Date.now();
+		var cuadro1, cuadro2;
+		
+		init();
+		animate();
+		
+		function init(){
+			scene = new THREE.Scene();
+			aspect = window.innerWidth / window.innerHeight;
+			camera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+			controls = new THREE.OrbitControls( camera, renderer.domElement);
+			
+			var size = 300;
+			var gridHelperXZ = new THREE.GridHelper( size, size, 0x333333, 0x333333 );
+			var y = new THREE.Vector3( 0, 1, 0 );
+			gridHelperXZ.rotateOnWorldAxis ( y, THREE.Math.degToRad(90) );
+			
+			var geoPlano = new THREE.PlaneGeometry(30,30);
+			var material = new THREE.MeshBasicMaterial({ color: 0xed1b35, side: THREE.DoubleSide});
+			
+			cuadro1 = new THREE.Mesh(geoPlano,material);
+			cuadro1.position.set(25,25,0);
+			cuadro2 = cuadro1.clone();
+			
+			
+			
+			var matA = new THREE.Matrix4();
+			var matB = new THREE.Matrix4();
+			var matC = new THREE.Matrix4();
+			matA.set(0.866 , 0 , 0.5 , -3.35,
+					   0 ,    1 ,  0  ,   0,
+					 -0.5 ,  0 ,  0.866 , -12.5,
+					   0 ,   0 ,    0   ,  1);
+			console.log("Matriz resultante de rotación sobre Y");
+			console.log(matA);
+			matB.set( 1 , 0 ,0, 0,
+					  0 , 1 ,0, 0,
+					  0 , 0 ,1 ,6,
+					  0 , 0 ,0 ,1);
+			console.log("Matriz de traslación en Z");
+			console.log(matB);
+			matC.set( 7 , 0 ,0, 150,
+					  0 , 1 ,0, 25,
+					  0 , 0 ,1 ,6,
+					  0 , 0 ,0 ,1);
+			console.log("Matriz resultante de escala");
+			console.log(matC);
+			
+			
+			cuadro2.applyMatrix(matA);
+			cuadro2.applyMatrix(matB);
+			cuadro2.applyMatrix(matC);
+			
+			scene.add(gridHelperXZ);
+			scene.add(cuadro1);
+			scene.add(cuadro2);
+			
+			camera.position.set(0,75,150);
+			camera.lookAt(0,0,0);
+			
+			renderer.render(scene,camera);
+		}
+		
+		function animate(){
+			render();
+			controls.update();
+			requestAnimationFrame(animate);
+		}
+		
+		function render(){
+			renderer.render(scene,camera);
+		}
+		</script>
+	</body>
+</html>
