@@ -1,0 +1,247 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<style>
+			html, body{margin:0;padding:0;overflow:hidden;}
+		</style>
+	</head>
+	<body>
+		<button id="Camara"> Camara </button>
+		<button id="Caja">Caja</button>
+		<script src= "js/three.min.js"></script>
+		<script src= "js/controls/OrbitControls.js"></script>
+		<script>
+			
+			var camera, scene, renderer,controls;
+			var plane;
+			var mouse, raycaster, isShiftDown = false;
+
+			var rollOverMesh, rollOverMaterial;
+			var cubeGeo;
+
+			var objects = [];
+			
+			var rotcam = true;
+			var cubo = false;
+			
+			var col = 0x3ec22f;
+			
+			Camara.onclick = function(){
+				rotcam=true
+				cubo=false;
+				lar=false;
+				larR = false;
+				alto = false;
+			}
+			
+			Caja.onclick = function(){
+				rotcam=false;
+				cubo=true;
+				lar=false;
+				larR = false;
+				alto = false;
+			}
+			
+			init();
+			render();
+			
+			
+
+
+			function init() {
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.set( 500, 800, 1300 );
+				camera.lookAt( 0, 0, 0 );
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xf0f0f0 );
+
+				// roll-over helpers
+
+				var rollOverGeo = new THREE.BoxGeometry( 50, 50, 50 );
+				var rollLong = new THREE.BoxGeometry(200,50,50);
+				var rollLongR = new THREE.BoxGeometry(50,50,200);
+				var rollAlto = new THREE.BoxGeometry(50,200,50);
+				rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.5, transparent: true } );
+				rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
+				rollLongMesh = new THREE.Mesh(rollLong,rollOverMaterial);
+				rollLongRMesh = new THREE.Mesh(rollLongR,rollOverMaterial);
+				rollAltoMesh = new THREE.Mesh(rollAlto,rollOverMaterial);
+				
+				
+			
+				
+				// cubes
+				
+
+				cubeGeo = new THREE.BoxGeometry( 50, 50, 50 );
+				cubeMaterial = new THREE.MeshLambertMaterial( { color: col } );
+
+				// grid
+				
+				var tamaño = 2000;
+				var divisiones = tamaño/25;
+
+				var gridHelper = new THREE.GridHelper( tamaño, divisiones );
+				scene.add( gridHelper );
+
+				//
+
+				raycaster = new THREE.Raycaster();
+				mouse = new THREE.Vector2();
+
+				var geometry = new THREE.PlaneGeometry( tamaño, tamaño );
+				geometry.rotateX( - Math.PI / 2 );
+
+				plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
+				scene.add( plane );
+
+				objects.push( plane );
+				
+
+				// lights
+
+				var ambientLight = new THREE.AmbientLight( 0x606060 );
+				scene.add( ambientLight );
+
+				var directionalLight = new THREE.DirectionalLight( 0xffffff );
+				directionalLight.position.set( 1, 0.75, 0.5 ).normalize();
+				scene.add( directionalLight );
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+				document.addEventListener( 'keydown', onDocumentKeyDown, false );
+				document.addEventListener( 'keyup', onDocumentKeyUp, false );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+			
+				
+			
+				
+				function actualizarColor(event){
+					col=event.target.value;
+					console.log(col);
+					cubeMaterial.color.set(col);
+				}
+				controls=new THREE.OrbitControls(camera, renderer.domElement);
+				
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onDocumentMouseMove( event ) {
+
+				event.preventDefault();
+
+				mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
+
+				raycaster.setFromCamera( mouse, camera );
+
+				var intersects = raycaster.intersectObjects( objects );
+
+				if ( intersects.length > 0 ) {
+
+					var intersect = intersects[ 0 ];
+					if(cubo){
+						rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
+						rollOverMesh.position.divideScalar( 25 ).floor().multiplyScalar( 25 ).addScalar( 25 );
+					}
+					
+
+				}
+
+				render();
+
+			}
+
+			function onDocumentMouseDown( event ) {
+				event.preventDefault();
+				mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
+				raycaster.setFromCamera( mouse, camera );
+				var intersects = raycaster.intersectObjects( objects );
+				
+				if ( intersects.length > 0 ) {
+					var intersect = intersects[ 0 ];
+					if(rotcam==false){
+					
+						// delete cube
+						if ( isShiftDown ) {
+	
+							if ( intersect.object !== plane ) {
+	
+								scene.remove( intersect.object );
+								objects.splice( objects.indexOf( intersect.object ), 1 );
+	
+							}
+	
+							// create cube
+						} else {
+							if(cubo){
+								var mat = new THREE.MeshLambertMaterial({color:col});
+								var voxel = new THREE.Mesh( cubeGeo, mat );
+								voxel.position.copy( intersect.point ).add( intersect.face.normal );
+								voxel.position.copy(rollOverMesh.position);
+								scene.add( voxel );
+								objects.push( voxel );
+							}
+						}
+					}
+					render();
+				}
+			}
+
+			function onDocumentKeyDown( event ) {
+
+				switch ( event.keyCode ) {
+					case 16: isShiftDown = true; break;
+				}
+			}
+
+			function onDocumentKeyUp( event ) {
+
+				switch ( event.keyCode ) {
+					case 16: isShiftDown = false; break;
+				}
+			}
+
+			function render() {
+			
+				
+				if(rotcam){
+					scene.remove(rollOverMesh);
+					scene.remove(rollLongMesh);
+					scene.remove(rollLongRMesh);
+					scene.remove(rollAltoMesh);
+				}
+				
+				if(cubo){
+					scene.add(rollOverMesh);
+					scene.remove(rollLongMesh);
+					scene.remove(rollLongRMesh);
+					scene.remove(rollAltoMesh);
+				}
+				
+			
+				controls.enabled=rotcam;				
+				renderer.render( scene, camera );
+				
+			}
+
+		</script>
+	</body>
+</html>
