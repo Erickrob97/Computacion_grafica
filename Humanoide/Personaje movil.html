@@ -210,7 +210,7 @@
 				brazo2 = brazo1.clone();
 				
 				
-				
+				console.log('gei');
 				
 				cuerpo.add(pierna1);
 				pierna1.position.x+=2.5;
@@ -285,7 +285,6 @@
 					0, 1, 0, ty, 
 					0, 0, 1, tz,
 					0, 0, 0, 1	);
-				console.lo
 				cuerpo.matrix.multiply(t);
 				
 				var ct1 = Math.cos(rotP);
@@ -317,9 +316,6 @@
 				cuerpo.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
 				cuerpo.applyMatrix(r);
 				cuerpo.applyMatrix( tempMatrix );
-				
-				var r1i=new THREE.Matrix4().getInverse(r1);
-				var r2i=new THREE.Matrix4().getInverse(r2);
 				
 				pierna1.applyMatrix(r1);
 				pierna2.applyMatrix(r2);

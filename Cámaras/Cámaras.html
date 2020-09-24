@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Cámaras</title>
+		<style>
+			html, body { margin: 0; padding: 0; overflow: hidden; }
+            #info {
+                position: absolute;
+                padding: 10px;
+                width: 100%;
+                text-align: center;
+                color: #FFFFFF;
+            }
+		</style>
+	</head>
+	
+	<body>
+		<div id="info"> movimiento -> WASD <br /> cambio de camara = c </div>
+		<script src="js/three.min.js"></script>
+		<script>
+			var scene, aspect, renderer, controls, camera,TPcamera, FPcamera, MAPcamera;
+			var startTime = Date.now();
+			
+			var up = false;
+			var down = false;
+			var left = false;
+			var right = false;
+			var ThirdPerson = true;
+			var FirstPerson = false;
+			
+			var geoCuerpo, geoCabeza, geoBrazo;
+			var cuerpo;
+			var brazoI, brazoD, cabeza, piernaI, piernaD;
+			
+			var angSum =0;
+			var positivo = false;
+			var res = 50;
+			
+			var w,h;
+			w = window.innerWidth;
+			h= window.innerHeight;
+			
+			init();
+			animate();
+			
+			function init(){
+				scene = new THREE.Scene();
+				aspect = window.innerWidth / window.innerHeight;
+				camera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
+				TPcamera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
+				FPcamera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
+				MAPcamera = new THREE.PerspectiveCamera( 45, aspect/10, 0.1, 1000);
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				document.body.appendChild(renderer.domElement);
+				
+				var onKeyDown = function(event){
+					switch(event.keyCode){
+						case 87:
+							up = true;
+							break;
+						case 83:
+							down = true;
+							break;
+						case 65:
+							left = true;
+							break;
+						case 68:
+							right = true;
+							break;
+						case 67:
+							if(ThirdPerson){
+								ThirdPerson = false;
+								FirstPerson = true;
+							}
+							else{
+								ThirdPerson = true;
+								FirstPerson = false;
+							}
+					}
+				}
+				
+				var onKeyUp = function(event){
+					switch(event.keyCode){
+						case 87:
+							up = false;
+							break;
+						case 83:
+							down = false;
+							break;
+						case 65:
+							left = false;
+							break;
+						case 68:
+							right = false;
+							break;
+					}
+				}
+				
+				document.addEventListener( 'keydown', onKeyDown, false );
+				document.addEventListener( 'keyup', onKeyUp, false );
+				
+				var origin = new THREE.Vector3(0,0,0);
+				var x = new THREE.Vector3( 1, 0, 0 );
+				var y = new THREE.Vector3( 0, 1, 0 );
+				var z = new THREE.Vector3( 0, 0, 1 );
+				
+				var geosuelo = new THREE.PlaneGeometry(100,100, res);
+				var matSuelo = new THREE.MeshBasicMaterial({color: 0x525252});
+				var suelo = new THREE.Mesh(geosuelo,matSuelo);
+				var geoEdificio = new THREE.BoxGeometry(30,50,30);
+				var matEdificio = new THREE.MeshBasicMaterial({color: 0x1d5286});
+				var edificio1 = new THREE.Mesh(geoEdificio,matEdificio);
+				
+				suelo.rotateOnWorldAxis(x, THREE.Math.degToRad(-90));
+				edificio1.position.y+=25;
+				edificio1.position.x+=35;
+				var edificio2 = edificio1.clone();
+				edificio1.position.z+=35;
+				edificio2.position.z-=35;
+				var edificio3 = edificio1.clone();
+				edificio3.position.x-=70;
+				var edificio4 = edificio3.clone();
+				edificio4.position.z-=70;
+				
+				var matCuerpo = new THREE.MeshBasicMaterial({color:0xff6b0f});
+				var matBrazo = new THREE.MeshBasicMaterial({color:0x9e5400});
+				geoCuerpo = new THREE.BoxGeometry(6,8,3);
+				geoBrazo = new THREE.BoxGeometry(3,8,3);
+				geoCabeza = new THREE.BoxGeometry(6,6,6);
+				
+				cuerpo = new THREE.Mesh(geoCuerpo,matCuerpo);
+				brazoI = new THREE.Mesh(geoBrazo,matBrazo);
+				brazoI.position.x+=4.5;
+				brazoD = brazoI.clone();
+				brazoD.position.x-=9;
+				piernaD = brazoI.clone();
+				piernaI = brazoI.clone();
+				piernaD.position.y-=8;
+				piernaI.position.y-=8;
+				piernaD.position.x-=6;
+				piernaI.position.x-=3;
+				cabeza = new THREE.Mesh(geoCabeza,matBrazo);
+				cabeza.position.y+=7;
+				
+				cuerpo.position.y+=12;
+				
+
+				cuerpo.add(brazoI);
+				cuerpo.add(brazoD);
+				cuerpo.add(piernaD);
+				cuerpo.add(piernaI);
+				cuerpo.add(cabeza);
+				scene.add(cuerpo);
+				
+				scene.add(suelo);
+				scene.add(edificio1);
+				scene.add(edificio2);
+				scene.add(edificio3);
+				scene.add(edificio4);
+				scene.add(FPcamera);
+				
+				TPcamera.position.set(0,20,-30);
+				TPcamera.lookAt(0,20,5);
+				MAPcamera.copy(TPcamera);
+				FPcamera.copy(TPcamera);
+				
+				FPcamera.position.set(0,20,0);
+				FPcamera.lookAt(0,20,5);
+				MAPcamera.position.set(0,150,0);
+				MAPcamera.lookAt(origin);
+				
+				
+				
+				renderer.render(scene,TPcamera);
+			}
+			
+			function animate(){
+				
+			
+				render();
+				requestAnimationFrame(animate);
+			}
+			
+			function render(){
+				var dtime=Date.now()-startTime;
+				var tx=0,ty=0,tz=0;
+				var rotP=0;
+				var rot=0;
+				if(cuerpo.position.x >= 50){
+					cuerpo.position.x -= 1;
+					TPcamera.position.x -= 1;
+					FPcamera.position.x -= 1;}
+				if(cuerpo.position.x <= -50){
+					cuerpo.position.x += 1;
+					TPcamera.position.x += 1;
+					FPcamera.position.x += 1;}
+				if(cuerpo.position.z >= 50){
+					cuerpo.position.z -= 1;
+					TPcamera.position.z -= 1;
+					FPcamera.position.z -= 1;}
+				if(cuerpo.position.z <= -50){
+					cuerpo.position.z += 1;
+					TPcamera.position.z += 1;
+					FPcamera.position.z += 1;
+				}	
+				if (cuerpo.position.x >= -50 && cuerpo.position.x <=50 && cuerpo.position.z >= -50 && cuerpo.position.z <=50){
+				if(cuerpo.position.x <= -20 && cuerpo.position.z <= -20){
+					cuerpo.position.x +=1; 
+					cuerpo.position.z+=1
+					
+					TPcamera.position.x +=1; 
+					TPcamera.position.z+=1
+					FPcamera.position.x +=1; 
+					FPcamera.position.z+=1
+				}
+				else{
+				if(cuerpo.position.x >= 20 && cuerpo.position.z <= -20){
+					cuerpo.position.x -=1; 
+					cuerpo.position.z+=1
+					TPcamera.position.x -=1; 
+					TPcamera.position.z+=1
+					FPcamera.position.x -=1; 
+					FPcamera.position.z+=1
+				}
+				else{
+				if(cuerpo.position.x <= -20 && cuerpo.position.z >= 20){
+					cuerpo.position.x +=1; 
+					cuerpo.position.z-=1
+					TPcamera.position.x +=1; 
+					TPcamera.position.z-=1
+					FPcamera.position.x +=1; 
+					FPcamera.position.z-=1
+				}
+				else{
+				if(cuerpo.position.x >= 20 && cuerpo.position.z >= 20){
+					cuerpo.position.x -=1; 
+					cuerpo.position.z-=1
+					TPcamera.position.x -=1; 
+					TPcamera.position.z-=1
+					FPcamera.position.x -=1; 
+					FPcamera.position.z-=1
+				}
+				else{
+					if(angSum>=60*Math.PI/180)
+						positivo=false;
+					if(angSum<=-60*Math.PI/180)
+						positivo=true;
+					
+					if(up){
+						tx=0; ty=0; tz=1;
+					if(positivo)
+						rotP = .1;
+					else
+						rotP = -.1;
+					}
+					if(down){
+						tx=0; ty=0; tz=-1;
+					if(positivo)
+						rotP = .1;
+					else
+						rotP = -.1;
+					}
+					angSum+=rotP;
+					
+					if(right)
+						rot=-.1;
+					if(left)
+						rot=.1;
+					
+					var t = new THREE.Matrix4();
+					t.set( 	1, 0, 0, tx,
+						0, 1, 0, ty, 
+						0, 0, 1, tz,
+						0, 0, 0, 1	);
+					cuerpo.matrix.multiply(t);
+					TPcamera.matrix.multiply(new THREE.Matrix4().getInverse(t));
+					FPcamera.matrix.multiply(new THREE.Matrix4().getInverse(t));
+					
+					var ct1 = Math.cos(rotP);
+					var ct2 = Math.cos(-rotP);
+					var cs = Math.cos(rot);
+					var st1 = Math.sin(rotP);
+					var st2 = Math.sin(-rotP);
+					var ss = Math.sin(rot);
+					var r = new THREE.Matrix4();
+					var r1 = new THREE.Matrix4();
+					var r2 = new THREE.Matrix4();
+					
+					r.set( 	   cs,  0, ss, 0,
+							0,  1,  0, 0, 
+							-ss,  0, cs, 0,
+							0,  0,  0, 1 );	
+						
+					r1.set( 	1,  0,  0, 0,
+							0, ct1,-st1, 0, 
+							0, st1, ct1, 0,
+							0,  0,  0, 1 );	
+					r2.set( 	1,  0,  0, 0,
+							0, ct2,-st2, 0, 
+							0, st2, ct2, 0,
+							0,  0,  0, 1 );
+				
+					var tempMatrix = new THREE.Matrix4();
+					tempMatrix.copyPosition(cuerpo.matrix);
+					cuerpo.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
+					TPcamera.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
+					FPcamera.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
+					cuerpo.applyMatrix(r);
+					TPcamera.applyMatrix(r);
+					FPcamera.applyMatrix(r);
+					cuerpo.applyMatrix( tempMatrix );
+					TPcamera.applyMatrix( tempMatrix );
+					FPcamera.applyMatrix( tempMatrix );
+					
+					
+					piernaI.applyMatrix(r1);
+					piernaD.applyMatrix(r2);
+					
+					var tempMatrix = new THREE.Matrix4();
+					tempMatrix.copyPosition(brazoI.matrix);
+					brazoI.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
+					brazoI.applyMatrix(r2);
+					brazoI.applyMatrix( tempMatrix );
+					
+					var tempMatrix = new THREE.Matrix4();
+					tempMatrix.copyPosition(brazoD.matrix);
+					brazoD.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
+					brazoD.applyMatrix(r1);
+					brazoD.applyMatrix( tempMatrix );
+					
+				}}}}}
+				
+				
+				renderer.setViewport( 0, 0, w, h );
+				renderer.setScissor( 0, 0, w, h );
+				if(ThirdPerson)
+					renderer.render(scene, TPcamera);
+				if(FirstPerson)
+					renderer.render(scene,FPcamera);
+				
+				renderer.setViewport( 4*(w/5), 4*(h/5), w/5, h/5 );
+				renderer.setScissor( 4*(w/5), 4*(h/5), w/5, h/5 );
+				renderer.setScissorTest( true );
+				renderer.render( scene, MAPcamera );
+				
+			}
+		</script>
+	</body>
+</html>
