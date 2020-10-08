@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Mueble</title>
+		<style>
+			html, body { margin: 0; padding: 0; overflow: hidden; }
+		</style>
+	</head>
+	<body>
+		<script src="js/three.min.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/csg.js"></script>
+		<script src="js/THREE.CSG.js"></script>
+		<script>
+			var scene,aspect, camera, renderer, controls;
+			
+			init();
+			animate();
+			
+			function init(){
+				scene = new THREE.Scene();
+				aspect = window.innerWidth / window.innerHeight;
+				camera = new THREE.PerspectiveCamera( 75, aspect, 0.1, 1000);
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				
+				var origin = new THREE.Vector3( 0, 0, 0 );
+				var x = new THREE.Vector3( 1, 0, 0 );
+				var y = new THREE.Vector3( 0, 1, 0 );
+				var z = new THREE.Vector3( 0, 0, 1 );
+				
+				var gridHelperXZ = new THREE.GridHelper( 10, 10, 0x333333, 0x333333 );
+				gridHelperXZ.rotateOnWorldAxis ( y, THREE.Math.degToRad(90) );
+				scene.add( gridHelperXZ );
+				
+				var ambient = new THREE.AmbientLight( 0xffffff, 2 );
+				scene.add( ambient );
+				
+				var pointLight = new THREE.PointLight( 0xffffff, 1, 100 );
+				pointLight.position.set( -5, -2, 5 );
+				scene.add( pointLight );
+				
+				var pointLight = new THREE.PointLight( 0xffffff, .5, 100 );
+				pointLight.position.set( 5, -2, -5 );
+				scene.add( pointLight );
+				
+				var mesaGeo = new THREE.BoxGeometry(50,1,50);
+				var granRes = new THREE.BoxGeometry(30,1,30);
+				var esquinares = new THREE.BoxGeometry(3,1,3);
+				var redonda = new THREE.CylinderGeometry(1.5,1.5,1,10)
+				
+				var material = new THREE.MeshStandardMaterial( { color: 0x855505, metalness: 0.5, roughness: 0.1 } );
+				
+				var mesa = new THREE.Mesh(mesaGeo);
+				var resta = new THREE.Mesh(granRes);
+				var restaEsquina = new THREE.Mesh(esquinares);
+				var restaEsquina2 = new THREE.Mesh(esquinares);
+				var sumaRed = new THREE.Mesh(redonda);
+				var sumaRed2 = new THREE.Mesh(redonda);
+				resta.translateX(10);
+				resta.translateZ(-10);
+				
+				restaEsquina.translateX(23.5);
+				restaEsquina.translateZ(6.5);
+				restaEsquina2.translateZ(-23.5);
+				restaEsquina2.translateX(-6.5);
+				
+				sumaRed.translateX(23.5);
+				sumaRed.translateZ(6.5);
+				sumaRed2.translateZ(-23.5);
+				sumaRed2.translateX(-6.5);
+				
+				
+				var mesaCSG = THREE.CSG.fromMesh(mesa);
+				var restaCSG = THREE.CSG.fromMesh(resta);
+				
+				var restaEsquinaCSG = THREE.CSG.fromMesh(restaEsquina);
+				var restaEsquina2CSG = THREE.CSG.fromMesh(restaEsquina2);
+				
+				var mesaFinal = mesaCSG.subtract(restaCSG);
+				
+				var sumaRedCSG = THREE.CSG.fromMesh(sumaRed);
+				var sumaRed2CSG = THREE.CSG.fromMesh(sumaRed2);
+				
+				mesaFinal = mesaFinal.subtract(restaEsquinaCSG);
+				mesaFinal = mesaFinal.subtract(restaEsquina2CSG);
+				
+				resta.rotateOnWorldAxis(y, THREE.Math.degToRad(45));
+				resta.position.x=-27;
+				resta.position.z=27;
+				
+				console.log(resta.position);
+				var restaCSG = THREE.CSG.fromMesh(resta)
+				mesaFinal = mesaFinal.subtract(restaCSG);
+				
+				mesaFinal = mesaFinal.union (sumaRedCSG);
+				mesaFinal = mesaFinal.union (sumaRed2CSG);
+				
+				restaEsquina.translateX(-1.5);
+				restaEsquina2.translateX(-1.5);
+				
+				var restaEsquinaCSG = THREE.CSG.fromMesh(restaEsquina);
+				var restaEsquina2CSG = THREE.CSG.fromMesh(restaEsquina2);
+				
+				mesaFinal = mesaFinal.union (restaEsquinaCSG);
+				mesaFinal = mesaFinal.union (restaEsquina2CSG);
+				
+				restaEsquina.translateX(1.5);
+				restaEsquina.translateZ(1.5);
+				restaEsquina2.translateX(1.5);
+				restaEsquina2.translateZ(1.5);
+				
+				var restaEsquinaCSG = THREE.CSG.fromMesh(restaEsquina);
+				var restaEsquina2CSG = THREE.CSG.fromMesh(restaEsquina2);
+				
+				mesaFinal = mesaFinal.union (restaEsquinaCSG);
+				mesaFinal = mesaFinal.union (restaEsquina2CSG);
+				
+				var mesaTotal = THREE.CSG.toMesh(mesaFinal);
+				
+				mesaTotal.material = material;
+				
+				scene.add(mesaTotal);
+				camera.position.x = 20;
+				camera.position.y = 20;
+				camera.position.z = 50;
+				camera.lookAt( origin );
+			}
+			function animate(){
+				requestAnimationFrame( animate );
+				controls.update();
+				render();
+			}
+			function render(){
+				renderer.render( scene, camera );
+			}
+			
+		</script>
+	</body>
+</html>
