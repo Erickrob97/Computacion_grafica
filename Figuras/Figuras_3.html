@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title> Figuras </title>
+		<style>
+			html, body {margin: 0; padding:0; overflow : hidden}
+			#info {
+                position: absolute;
+                padding: 10px;
+                width: 100%;
+                text-align: center;
+                color: #FFFFFF;
+            }
+		</style>
+	<head>
+	
+	<body>
+		<button id="Camara"> Camara </button>
+		<button id="Box"> Caja </button>
+		<button id="Sphere"> Esfera </button>
+		<button id="Cilinder"> Cilindro </button>
+		<button id="Color"><input type="color" value="#00eb00"></button>
+		<script src= "js/three.min.js"></script>
+		<script src= "js/controls/OrbitControls.js"></script>
+		<script>
+			
+			var camera, scene, renderer, controls;
+			var plane;
+			var col = 0x00eb00;
+			
+			var objects = [];
+			
+			var camara = true;
+			var caja = false;
+			var esfera = false;
+			var cilindro = false;
+			
+			var cajaMesh, cilindroMesh, esferaMesh;
+			
+			var raycaster, mouse, isShiftDown = false;;
+			
+			
+			
+			
+			class Caja {
+				constructor(An,Al,Pro){
+					this.alto = Al;
+					this.ancho = An;
+					this.profundidad = Pro;
+					
+				}
+				
+				draw(){
+					var geometry = new THREE.Geometry();
+					
+					var vector = new THREE.Vector3();
+					vector.set(0,0,0);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(0,this.alto,0);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(this.ancho,this.alto,0);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(this.ancho,0,0);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(0,0,0);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(0,0,this.profundidad);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(this.ancho,0,0);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(this.ancho,0,this.profundidad);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(this.ancho,this.alto,0);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(this.ancho,this.alto,this.profundidad);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(0,this.alto,0);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(0,this.alto,this.profundidad);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(0,0,0);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(0,0,this.profundidad);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(this.ancho,0,this.profundidad);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(0,this.alto,this.profundidad);
+					
+					geometry.vertices.push(vector);
+					
+					var vector = new THREE.Vector3();
+					vector.set(this.ancho,this.alto,this.profundidad);
+					
+					geometry.vertices.push(vector);
+					
+					var geo = geometry;
+					for( var i=2; i<geo.vertices.length ; i++ ){
+						geo.faces.push( new THREE.Face3(i-2,i-1,i) );
+					}
+					geo.computeFaceNormals();
+					var materialStrip =new THREE.MeshBasicMaterial(  { color: 0xff0000, opacity: 0.5, transparent: true , side: THREE.DoubleSide} );
+					var strip = new THREE.Mesh( geo, materialStrip );
+					
+					return strip;
+				}
+				
+			}
+			
+			class Cilindro {
+				constructor(R,H){
+					this.radio = R;
+					this.alto = H;
+				}
+				
+				draw(){
+					var geometry = new THREE.Geometry();
+						for(var j = 1; j <= 26; j++){
+							var vector = new THREE.Vector3();
+							vector.x=this.radio* Math.cos( ( j * 2.0 * Math.PI ) / 25);
+							vector.y=0;
+							vector.z=this.radio* Math.sin( ( j * 2.0 * Math.PI ) / 25);
+							geometry.vertices.push(vector);
+							
+							var vector = new THREE.Vector3();
+							vector.set(0,0,0);
+							geometry.vertices.push(vector);
+						}
+						for( var i = 0; i <= 25; i++){
+							var punto = new THREE.Vector3();
+							var punto2 = new THREE.Vector3();
+							punto.x = this.radio * Math.cos( ( 2 * Math.PI * i )/ 25 );
+							punto.y = 0
+							punto.z = this.radio * Math.sin( ( 2 * Math.PI * i )/ 25 );
+							punto2.x = punto.x;
+							punto2.y = this.alto;
+							punto2.z = punto.z;
+							geometry.vertices.push( punto );
+							geometry.vertices.push( punto2 );				
+						}
+						for(var j = 1; j <= 26; j++){
+							var vector = new THREE.Vector3();
+							vector.x=this.radio* Math.cos( ( j * 2.0 * Math.PI ) / 25);
+							vector.y=this.alto;
+							vector.z=this.radio* Math.sin( ( j * 2.0 * Math.PI ) / 25);
+							geometry.vertices.push(vector);
+							
+							var vector = new THREE.Vector3();
+							vector.set(0,this.alto,0);
+							geometry.vertices.push(vector);
+						}
+					var geo = geometry;
+					console.log(geo.vertices.length);
+					for( var i=2; i<geo.vertices.length ; i++ ){
+						geo.faces.push( new THREE.Face3(i-2,i-1,i) );
+					}
+					geo.computeFaceNormals();
+					var materialStrip =new THREE.MeshBasicMaterial(  { color: 0xff0000, opacity: 0.5, transparent: true , side: THREE.DoubleSide}  );
+					var strip = new THREE.Mesh( geo, materialStrip );
+					return strip;
+				}
+			}
+			
+			class Esfera {
+				constructor(r){
+					this.radio = r;
+				}
+				
+				draw(){
+					var geometry = new THREE.Geometry();
+					for(var i = 0; i<=25;i++){
+						for(var j = 0; j<=25;j++){
+							var vector = new THREE.Vector3();
+							var vector2 = new THREE.Vector3();
+							vector.x= this.radio*Math.sin(i*2*Math.PI/25) * Math.cos( (j*2*Math.PI)/25);
+							vector.y= this.radio*Math.cos(i*2*Math.PI/25) ;
+							vector.z= this.radio*Math.sin(i*2*Math.PI/25) * Math.sin( (j*2*Math.PI)/25);
+							vector2.x= this.radio*Math.sin((i+1)*2*Math.PI/25) * Math.cos( (j*2*Math.PI)/25);
+							vector2.y= this.radio*Math.cos((i+1)*2*Math.PI/25) ;
+							vector2.z= this.radio*Math.sin((i+1)*2*Math.PI/25) * Math.sin( (j*2*Math.PI)/25);
+							
+							geometry.vertices.push(vector);
+							geometry.vertices.push(vector2);
+						}
+					}
+					var geo = geometry;
+					for( var i=2; i<geo.vertices.length ; i++ ){
+						geo.faces.push( new THREE.Face3(i-2,i-1,i) );
+					}
+					geo.computeFaceNormals();
+					var materialStrip =new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.5, transparent: true, side: THREE.DoubleSide } );
+					var strip = new THREE.Mesh( geo, materialStrip );
+					return strip;
+				}
+			}
+			
+			Camara.onclick = function(){
+				 camara = true;
+				 caja = false;
+				 esfera = false;
+				 cilindro = false;
+				//console.log(camara);
+			}
+			
+			Box.onclick = function(){
+				 camara = false;
+				 caja = true;
+				 esfera = false;
+				 cilindro = false;
+				//console.log(camara);
+			}
+			
+			Sphere.onclick = function(){
+				 camara = false;
+				 caja = false;
+				 esfera = true;
+				 cilindro = false;
+				//console.log(camara);
+			}
+			
+			Cilinder.onclick = function(){
+				 camara = false;
+				 caja = false;
+				 esfera = false;
+				 cilindro = true;
+				//console.log(camara);
+			}
+			
+			init();
+			render();
+			
+			function init(){
+				
+				
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0x000000 );
+				renderer = new THREE.WebGLRenderer( {antialias: true});
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				
+				document.body.appendChild( renderer.domElement );
+				
+				var ambient = new THREE.AmbientLight(0x606060);
+				scene.add(ambient);
+				
+				var directionalLight = new THREE.DirectionalLight( 0xffffff );
+				directionalLight.position.set( 1, 0.75, 0.5 ).normalize();
+				scene.add( directionalLight );
+				
+				camera.position.set(80,80,130);
+				camera.lookAt(0,0,0);
+				
+				var caja1 = new Caja(5,5,5);
+				cajaMesh = caja1.draw();
+				var caja2 = new Caja(5,5,5);
+				cajaMesh = caja1.draw();
+				var cilindro1 = new Cilindro(2.5,5);
+				cilindroMesh = cilindro1.draw();
+				var esfera1 = new Esfera(2.5);
+				esferaMesh = esfera1.draw();
+				
+				//crear geometrias
+				
+				cajaSolida = new Caja (5,5,5);
+				Matx = new THREE.MeshLambertMaterial( { color: col } );
+				
+				console.log(cajaMesh);
+				//scene.add(cajaMesh);
+				
+				var tamaño = 200;
+				var divisiones = tamaño / 2.5;
+				
+				var gridHelper = new THREE.GridHelper(tamaño, divisiones);
+				scene.add(gridHelper);
+				
+				raycaster = new THREE.Raycaster();
+				mouse = new THREE.Vector2();
+				
+				var geometry = new THREE.PlaneGeometry( tamaño, tamaño );
+				geometry.rotateX( - Math.PI / 2 );
+
+				plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
+				scene.add( plane );
+
+				objects.push( plane );
+				
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+				document.addEventListener( 'keydown', onDocumentKeyDown, false );
+				document.addEventListener( 'keyup', onDocumentKeyUp, false );
+				
+				window.addEventListener( 'resize', onWindowResize, false );
+				
+				Color.addEventListener("input",actualizarColor,false);
+				
+				function actualizarColor(event){
+					col=event.target.value;
+					console.log(col);
+					Matx.color.set(col);
+				}
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+			}
+			
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+			
+			function onDocumentMouseMove( event ) {
+
+				event.preventDefault();
+
+				mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1.2, - ( event.clientY / window.innerHeight ) * 2 + 0.85 );
+
+				raycaster.setFromCamera( mouse, camera );
+
+				var intersects = raycaster.intersectObjects( objects );
+
+				if ( intersects.length > 0 ) {
+
+					var intersect = intersects[ 0 ];
+					if(caja){
+						cajaMesh.position.copy( intersect.point ).add( intersect.face.normal );
+						cajaMesh.position.divideScalar(2.5).floor().multiplyScalar( 2).addScalar( 25 );
+					}
+					if(esfera){
+						esferaMesh.position.copy( intersect.point ).add( intersect.face.normal );
+						esferaMesh.position.divideScalar( 5 ).floor().multiplyScalar( 5 ).addScalar(25);;
+					}
+					if(cilindro){
+						cilindroMesh.position.copy( intersect.point ).add( intersect.face.normal );
+						cilindroMesh.position.divideScalar( 5).floor().multiplyScalar( 5 ).addScalar(25);;
+					}
+					
+
+				}
+
+				render();
+
+			}
+			
+			function onDocumentMouseDown( event ) {
+				event.preventDefault();
+				mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1.2, - ( event.clientY / window.innerHeight ) * 2 + 1 );
+				raycaster.setFromCamera( mouse, camera );
+				var intersects = raycaster.intersectObjects( objects );
+				
+				if ( intersects.length > 0 ) {
+					var intersect = intersects[ 0 ];
+					if(camara==false){
+					
+						
+						if ( isShiftDown ) {
+	
+							if ( intersect.object !== plane ) {
+	
+								scene.remove( intersect.object );
+								objects.splice( objects.indexOf( intersect.object ), 1 );
+	
+							}
+	
+							
+						} else {
+							if(caja){
+								var mat = new THREE.MeshLambertMaterial({color:col, side:THREE.DoubleSide});
+								var voxel = new THREE.Mesh();
+								voxel.copy(cajaMesh);
+								voxel.material = mat;
+								voxel.position.copy( intersect.point ).add( intersect.face.normal );
+								voxel.position.copy(cajaMesh.position);
+								scene.add( voxel );
+								objects.push( voxel );
+							}
+							if(esfera){
+								var mat = new THREE.MeshLambertMaterial({color:col, side:THREE.DoubleSide});
+								var voxel = new THREE.Mesh();
+								voxel.copy(esferaMesh);
+								voxel.material = mat;
+								voxel.position.copy( intersect.point ).add( intersect.face.normal );
+								scene.add( voxel );
+								objects.push( voxel );
+							}
+							if(cilindro){
+								var mat = new THREE.MeshLambertMaterial({color:col, side:THREE.DoubleSide});
+								var voxel = new THREE.Mesh();
+								voxel.copy(cilindroMesh);
+								voxel.material = mat;
+								voxel.position.copy( intersect.point ).add( intersect.face.normal );
+								scene.add( voxel );
+								objects.push( voxel );
+							}
+						}
+					}
+					render();
+				}
+			}
+			
+			function onDocumentKeyDown( event ) {
+
+				switch ( event.keyCode ) {
+					case 16: isShiftDown = true; break;
+				}
+			}
+			function onDocumentKeyUp( event ) {
+
+				switch ( event.keyCode ) {
+					case 16: isShiftDown = false; break;
+				}
+			}
+
+			function render(){
+			
+				if(camara){
+					scene.remove(cajaMesh);
+					scene.remove(esferaMesh);
+					scene.remove(cilindroMesh);
+				}
+				
+				if(caja){
+					scene.add(cajaMesh);
+					scene.remove(esferaMesh);
+					scene.remove(cilindroMesh);
+				}
+				
+				if(esfera){
+					scene.remove(cajaMesh);
+					scene.add(esferaMesh);
+					scene.remove(cilindroMesh);
+				}
+				
+				if(cilindro){
+					scene.remove(cajaMesh);
+					scene.remove(esferaMesh);
+					scene.add(cilindroMesh);
+				}
+				
+				controls.enabled=camara;
+				renderer.render( scene, camera);
+			}
+		
+		
+		</script>
+	</body>
+</html>
