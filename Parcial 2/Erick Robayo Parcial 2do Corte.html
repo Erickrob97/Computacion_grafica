@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Parcial 2do Corte Erick Robayo </title>
+		<style>
+			html, body { margin:0 ; padding:0 overflow:hidden;}
+		</style>
+	</head>
+	<body>
+		<script src="js/three.min.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/csg.js"></script>
+		<script src="js/THREE.CSG.js"></script>
+		<script>
+			var scene, aspect, camera, render, controls;
+			var startTime = Date.now();
+			init();
+			animate();
+			
+			function init(){
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xAAAAAA );
+				aspect = window.innerWidth / window.innerHeight;
+				camera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				
+				var ambient = new THREE.AmbientLight( 0xffffff, 2 );
+				scene.add( ambient );
+				var pointLight = new THREE.PointLight( 0xffffff, 1, 100 );
+				pointLight.position.set( -5, -2, 5 );
+				scene.add( pointLight );
+				var pointLight = new THREE.PointLight( 0xffffff, .5, 100 );
+				pointLight.position.set( 5, -2, -5 );
+				scene.add( pointLight );
+				
+				var origin = new THREE.Vector3( 0, 0, 0 );
+				var x = new THREE.Vector3( 1, 0, 0 );
+				var y = new THREE.Vector3( 0, 1, 0 );
+				var z = new THREE.Vector3( 0, 0, 1 );
+				
+				var gridHelperX = new THREE.GridHelper(100,100,0x333333,0x333333);
+				var gridHelperY = new THREE.GridHelper(100,100,0x333333,0x333333);
+				
+				gridHelperY.rotateOnWorldAxis(x, THREE.Math.degToRad(90) );
+				scene.add(gridHelperX);
+				scene.add(gridHelperY);
+				
+				var llantaMat = new THREE.MeshStandardMaterial( {color: 0x292929 });
+				var pruebaMat = new THREE.MeshStandardMaterial( {color: 0xc4c4c4 });
+				var llantaBase = new THREE.CylinderGeometry(2.5,2.5,2,20);
+				
+				var resta1Geo = new THREE.CylinderGeometry(1,1,2,20);
+				var resta2Geo = new THREE.CylinderGeometry(1,1,2,20);
+				
+				
+				var resta1 = new THREE.Mesh(resta1Geo);
+				var resta2 = new THREE.Mesh(resta2Geo);
+				resta1.position.x+=1;
+				var llanta = new THREE.Mesh(llantaBase);
+				
+				var resta1CSG = new THREE.CSG.fromMesh(resta1);
+				var resta2CSG = new THREE.CSG.fromMesh(resta2);
+				var llantaCSG = new THREE.CSG.fromMesh(llanta);
+				
+				var restaG = resta1CSG.intersect(resta2CSG);
+				var resta = THREE.CSG.toMesh(restaG);
+				resta.position.x+=.65;
+				restaG = THREE.CSG.fromMesh(resta);
+				llantaCSG = llantaCSG.subtract(restaG);
+				
+				resta = THREE.CSG.toMesh(restaG);
+				resta.rotateY(THREE.Math.degToRad(120));
+				restaG = THREE.CSG.fromMesh(resta);
+				llantaCSG = llantaCSG.subtract(restaG);
+				
+				resta = THREE.CSG.toMesh(restaG);
+				resta.rotateY(THREE.Math.degToRad(120));
+				restaG = THREE.CSG.fromMesh(resta);
+				llantaCSG = llantaCSG.subtract(restaG);
+				
+				var llantaFinal = THREE.CSG.toMesh(llantaCSG);
+				llantaFinal.material = llantaMat;
+				llantaFinal.rotateX(THREE.Math.degToRad(90));
+				llantaFinal.position.x=-1;
+				llantaFinal.position.y=0.7;
+				llantaFinal.scale.set(0.4,0.4,0.4);
+				scene.add(llantaFinal);
+				
+				var llanta2 = new THREE.Mesh();
+				llanta2 = llantaFinal.clone();
+				llanta2.position.z=8;
+				scene.add(llanta2);
+				
+				var llanta3 = new THREE.Mesh();
+				llanta3 = llanta2.clone();
+				llanta3.position.x-=19;
+				scene.add(llanta3);
+				
+				var llanta4 = new THREE.Mesh();
+				llanta4 = llanta3.clone();
+				llanta4.position.z=0;
+				scene.add(llanta4);
+				
+				var Curva = [];
+					Curva[0 ] = new THREE.Vector2(14-14,2-2),
+					Curva[1 ] = new THREE.Vector2(16-14,2.5-2),
+					Curva[2 ] = new THREE.Vector2(17-14,4-2),
+					Curva[3 ] = new THREE.Vector2(14-14,5.5-2),
+					Curva[4 ] = new THREE.Vector2(9.5-14,5.6-2),
+					Curva[5 ] = new THREE.Vector2(9.2-14,5.6-2),
+					Curva[6 ] = new THREE.Vector2(8.8-14,5.6-2),
+					Curva[7 ] = new THREE.Vector2(5-14,8-2),
+					Curva[8 ] = new THREE.Vector2(2-14,7.6-2),
+					Curva[9 ] = new THREE.Vector2(-4-14,5.5-2),
+					Curva[10] = new THREE.Vector2(-9-14,5-2),
+					Curva[11] = new THREE.Vector2(-7-14,2-2),
+					Curva[12] = new THREE.Vector2(-7.2-14,3-2),
+					Curva[13] = new THREE.Vector2(-6-14,4-2),
+					Curva[14] = new THREE.Vector2(-4.8-14,3-2),
+					Curva[15] = new THREE.Vector2(-3.5-14,2-2),
+					Curva[16] = new THREE.Vector2(10.5-14,2-2),
+					Curva[17] = new THREE.Vector2(11.8-14,2.2-2),
+					Curva[18] = new THREE.Vector2(11.7-14,3-2),
+					Curva[19] = new THREE.Vector2(13-14,4-2),
+					Curva[20] = new THREE.Vector2(14-14,3-2),
+					Curva[21] = new THREE.Vector2(14-14,2-2)
+					
+					
+				var shape = new THREE.Shape();
+				shape.moveTo(0,0);
+				shape.splineThru(Curva);
+				
+				var ventana1Geo = new THREE.CylinderGeometry(1.5,1.5,8,3);
+				var matpruebas = new THREE.MeshBasicMaterial({color: 0x000000});
+				var ventana2Geo = new THREE.BoxGeometry(2.2,2.2,8);
+				
+				var ventana1 = new THREE.Mesh(ventana1Geo);
+				var ventana2 = new THREE.Mesh(ventana2Geo);
+				ventana1.rotateX( THREE.Math.degToRad(-90) );
+				//pruebas.position.set(-8.5,4,4);
+				ventana2.position.y+=0.35;
+				ventana2.position.x+=1.1;
+				
+				var restaVentana1 = new THREE.CSG.fromMesh(ventana1);
+				var restaVentana2 = new THREE.CSG.fromMesh(ventana2);
+				
+				var restaVentanaCSG = restaVentana1.union(restaVentana2);
+				
+				var restaVentana = new THREE.Mesh();
+				restaVentana = THREE.CSG.toMesh(restaVentanaCSG);
+				restaVentana.rotateY( THREE.Math.degToRad(180) );
+				restaVentana.position.set(-8.5,4,4);
+				restaVentanaCSG = THREE.CSG.fromMesh(restaVentana);
+				
+				var extrudeSettings = {
+					steps: 2,
+					amount: 8,
+					bevelEnabled: false,
+				};
+				
+				var autoGeo = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+				var materialExt= new THREE.MeshStandardMaterial( { 
+					color: 0xAA3333, 
+					metalness: 0.5, 
+					roughness: 0.1,
+					opacity:0.75,
+					transparent: true			
+				} );
+				
+				var mesh = new THREE.Mesh(autoGeo);
+				
+				var autoCSG = new THREE.CSG.fromMesh(mesh);
+				autoCSG = autoCSG.subtract(restaVentanaCSG);
+				
+				mesh = THREE.CSG.toMesh(autoCSG);
+				mesh.material = materialExt;
+				
+				scene.add(mesh);
+				
+				camera.position.x = 0;
+				camera.position.y = 10;
+				camera.position.z = 50;
+				camera.lookAt( origin );
+			}
+			
+			function animate(){
+				requestAnimationFrame( animate );
+				controls.update();
+				render();
+			}
+			function render(){
+				renderer.render( scene, camera );
+			}
+		</script>
+	</body>
+</html>
