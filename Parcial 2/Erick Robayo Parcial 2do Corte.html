@@ -3,17 +3,42 @@
 	<head>
 		<title>Parcial 2do Corte Erick Robayo </title>
 		<style>
-			html, body { margin:0 ; padding:0 overflow:hidden;}
+			html, body { margin: 0; padding: 0; overflow: hidden; }
+            #info {
+                position: absolute;
+                padding: 10px;
+                width: 100%;
+                text-align: center;
+                color: #FFFFFF;
+            }
 		</style>
 	</head>
 	<body>
+		<div id="info"> movimiento -> flechas <br/> cambio de cámara = c <br/> cámara libre = L </div>
 		<script src="js/three.min.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/csg.js"></script>
 		<script src="js/THREE.CSG.js"></script>
 		<script>
-			var scene, aspect, camera, render, controls;
+			var scene, aspect, camera, render, controls, FPcamera, TPcamera;
 			var startTime = Date.now();
+			
+			var adelante = false;
+			var atras = false;
+			var izquierda = false;
+			var derecha = false;
+			var ThirdPerson = true;
+			var FirstPerson = false;
+			var libre = false;
+			
+			var mesh;
+			var llantaFinal,llanta2,llanta3,llanta4;
+			
+			var origin = new THREE.Vector3( 0, 0, 0 );
+			var x = new THREE.Vector3( 1, 0, 0 );
+			var y = new THREE.Vector3( 0, 1, 0 );
+			var z = new THREE.Vector3( 0, 0, 1 );
+			
 			init();
 			animate();
 			
@@ -22,10 +47,86 @@
 				scene.background = new THREE.Color( 0xAAAAAA );
 				aspect = window.innerWidth / window.innerHeight;
 				camera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
+				FPcamera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
+				TPcamera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
 				renderer = new THREE.WebGLRenderer();
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
 				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				
+				
+				var onKeyDown = function(event){
+					switch(event.keyCode){
+						case 38:
+							adelante = true;
+							break;
+						case 40:
+							atras = true;
+							break;
+						case 37:
+							izquierda = true;
+							break;
+						case 39:
+							derecha = true;
+							break;
+						case 67:
+							if(libre){
+								libre = false;
+								ThirdPerson = true;
+								console.log(libre);
+							}
+							else{
+								if(ThirdPerson){
+									ThirdPerson = false;
+									FirstPerson = true;
+									console.log("primera persona");
+								}
+								else{
+									ThirdPerson = true;
+									FirstPerson = false;
+									console.log("tercera persona");
+								}
+							}
+							break;
+						case 76:
+							if(libre){
+								libre = false;
+								ThirdPerson = true;
+							}
+							else{
+								if(ThirdPerson){
+									ThirdPerson = false;
+									libre = true;
+								}
+								if(FirstPerson){
+									libre = true;
+									FirstPerson = false;
+								}
+							}
+							break;
+					}
+				}
+				
+				var onKeyUp = function(event){
+					switch(event.keyCode){
+						case 38:
+							adelante = false;
+							break;
+						case 40:
+							atras = false;
+							break;
+						case 37:
+							izquierda = false;
+							break;
+						case 39:
+							derecha = false;
+							break;
+					}
+				}
+				
+				document.addEventListener( 'keydown', onKeyDown, false );
+				document.addEventListener( 'keyup', onKeyUp, false );
+				
 				
 				var ambient = new THREE.AmbientLight( 0xffffff, 2 );
 				scene.add( ambient );
@@ -36,17 +137,14 @@
 				pointLight.position.set( 5, -2, -5 );
 				scene.add( pointLight );
 				
-				var origin = new THREE.Vector3( 0, 0, 0 );
-				var x = new THREE.Vector3( 1, 0, 0 );
-				var y = new THREE.Vector3( 0, 1, 0 );
-				var z = new THREE.Vector3( 0, 0, 1 );
+				
 				
 				var gridHelperX = new THREE.GridHelper(100,100,0x333333,0x333333);
 				var gridHelperY = new THREE.GridHelper(100,100,0x333333,0x333333);
 				
 				gridHelperY.rotateOnWorldAxis(x, THREE.Math.degToRad(90) );
 				scene.add(gridHelperX);
-				scene.add(gridHelperY);
+				//scene.add(gridHelperY);
 				
 				var llantaMat = new THREE.MeshStandardMaterial( {color: 0x292929 });
 				var pruebaMat = new THREE.MeshStandardMaterial( {color: 0xc4c4c4 });
@@ -81,28 +179,28 @@
 				restaG = THREE.CSG.fromMesh(resta);
 				llantaCSG = llantaCSG.subtract(restaG);
 				
-				var llantaFinal = THREE.CSG.toMesh(llantaCSG);
+				llantaFinal = THREE.CSG.toMesh(llantaCSG);
 				llantaFinal.material = llantaMat;
 				llantaFinal.rotateX(THREE.Math.degToRad(90));
 				llantaFinal.position.x=-1;
-				llantaFinal.position.y=0.7;
-				llantaFinal.scale.set(0.4,0.4,0.4);
-				scene.add(llantaFinal);
+				llantaFinal.position.y=1;
+				llantaFinal.scale.set(0.5,0.5,0.5);
 				
-				var llanta2 = new THREE.Mesh();
+				
+				llanta2 = new THREE.Mesh();
 				llanta2 = llantaFinal.clone();
 				llanta2.position.z=8;
-				scene.add(llanta2);
 				
-				var llanta3 = new THREE.Mesh();
+				
+				llanta3 = new THREE.Mesh();
 				llanta3 = llanta2.clone();
 				llanta3.position.x-=19;
-				scene.add(llanta3);
 				
-				var llanta4 = new THREE.Mesh();
+				
+				llanta4 = new THREE.Mesh();
 				llanta4 = llanta3.clone();
 				llanta4.position.z=0;
-				scene.add(llanta4);
+				
 				
 				var Curva = [];
 					Curva[0 ] = new THREE.Vector2(14-14,2-2),
@@ -140,7 +238,6 @@
 				var ventana1 = new THREE.Mesh(ventana1Geo);
 				var ventana2 = new THREE.Mesh(ventana2Geo);
 				ventana1.rotateX( THREE.Math.degToRad(-90) );
-				//pruebas.position.set(-8.5,4,4);
 				ventana2.position.y+=0.35;
 				ventana2.position.x+=1.1;
 				
@@ -155,6 +252,22 @@
 				restaVentana.position.set(-8.5,4,4);
 				restaVentanaCSG = THREE.CSG.fromMesh(restaVentana);
 				
+				var geoResCaja = new THREE.BoxGeometry(6,5,6);
+				var resCaja = new THREE.Mesh(geoResCaja);
+				resCaja.position.set(-8.5,3,4);
+				var resCajaCSG = new THREE.CSG.fromMesh(resCaja);
+				
+				var geoResLL = new THREE.CylinderGeometry(1.5,1.5,8,20);
+				var restaLlantas = new THREE.Mesh(geoResLL);
+				var restaLlantas2 =  new THREE.Mesh();
+				restaLlantas.rotateOnWorldAxis(x, THREE.Math.degToRad(90));
+				restaLlantas.position.set(-1,1,4);
+				restaLlantas2 = restaLlantas.clone();
+				restaLlantas2.position.x-=19;
+				var restaLlantasCSG = THREE.CSG.fromMesh(restaLlantas);
+				var restaLlantasCSG2 = THREE.CSG.fromMesh(restaLlantas2);
+				
+				
 				var extrudeSettings = {
 					steps: 2,
 					amount: 8,
@@ -166,24 +279,43 @@
 					color: 0xAA3333, 
 					metalness: 0.5, 
 					roughness: 0.1,
-					opacity:0.75,
 					transparent: true			
 				} );
 				
-				var mesh = new THREE.Mesh(autoGeo);
+				mesh = new THREE.Mesh(autoGeo);
 				
 				var autoCSG = new THREE.CSG.fromMesh(mesh);
 				autoCSG = autoCSG.subtract(restaVentanaCSG);
-				
+				autoCSG = autoCSG.subtract(restaLlantasCSG);
+				autoCSG = autoCSG.subtract(restaLlantasCSG2);
+				autoCSG = autoCSG.subtract(resCajaCSG);
 				mesh = THREE.CSG.toMesh(autoCSG);
 				mesh.material = materialExt;
 				
+				mesh.add(llantaFinal);
+				mesh.add(llanta2);
+				mesh.add(llanta3);
+				mesh.add(llanta4);
 				scene.add(mesh);
 				
-				camera.position.x = 0;
-				camera.position.y = 10;
-				camera.position.z = 50;
-				camera.lookAt( origin );
+				camera.position.set(50,50,50);
+				camera.lookAt(origin);
+				
+				TPcamera.position.x = -40;
+				TPcamera.position.y = 25;
+				TPcamera.position.z = 4;
+				TPcamera.lookAt( new THREE.Vector3(-12,4,4) );
+				
+				FPcamera.position.x = -12;
+				FPcamera.position.y = 4.5;
+				FPcamera.position.z = 4;
+				FPcamera.lookAt( new THREE.Vector3(-4,4.5,4) );
+				
+				renderer.render(scene,TPcamera);
+				
+				mesh.add(TPcamera);
+				mesh.add(FPcamera);
+				controls.enableKeys = false;
 			}
 			
 			function animate(){
@@ -192,7 +324,62 @@
 				render();
 			}
 			function render(){
-				renderer.render( scene, camera );
+				var dtime=Date.now()-startTime;
+				var tx=0,ty=0,tz=0;
+				var rot=0;
+				var quaternion1 = new THREE.Quaternion();
+				quaternion1.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), THREE.Math.degToRad(1));
+				var quaternion2 = new THREE.Quaternion();
+				quaternion2.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), THREE.Math.degToRad(-1));
+				
+				if(adelante){
+					tx=.5; ty=0; tz=0;
+					
+					
+					llantaFinal.rotateY(THREE.Math.degToRad(-10));
+					llanta2.rotateY(THREE.Math.degToRad(-10));
+					llanta3.rotateY(THREE.Math.degToRad(-10));
+					llanta4.rotateY(THREE.Math.degToRad(-10));
+					
+					
+				}
+				if(atras){
+					tx=-.5; ty=0; tz=0;
+					llantaFinal.rotateY(THREE.Math.degToRad(10));
+					llanta2.rotateY(THREE.Math.degToRad(10));
+					llanta3.rotateY(THREE.Math.degToRad(10));
+					llanta4.rotateY(THREE.Math.degToRad(10));
+				}
+				
+				var cs = Math.cos(rot);
+				var ss = Math.sin(rot);
+				var t = new THREE.Matrix4();
+					t.set( 	1, 0, 0, tx,
+						0, 1, 0, ty, 
+						0, 0, 1, tz,
+						0, 0, 0, 1	);
+				mesh.matrix.multiply(t);
+				
+				var r = new THREE.Matrix4();
+				r.set( 	   cs,  0, ss, 0,
+							0,  1,  0, 0, 
+							-ss,  0, cs, 0,
+							0,  0,  0, 1 );						
+				mesh.applyMatrix(r);
+				if(derecha){
+						mesh.applyQuaternion(quaternion2);
+				}
+				if(izquierda){
+						mesh.applyQuaternion(quaternion1);
+				}
+					
+				
+				if(ThirdPerson)
+					renderer.render(scene, TPcamera);
+				if(FirstPerson)
+					renderer.render(scene,FPcamera);
+				if(libre)
+					renderer.render(scene,camera);
 			}
 		</script>
 	</body>
