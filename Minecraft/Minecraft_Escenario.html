@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Minecraft cheto</title>
+    <style type="text/css">
+      html, body { margin: 0; padding: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <script src   =  "js/three.js"></script>
+	<script src   =  "js/perlin.js"></script>
+	<script src   =  "js/PointerLockControls.js"></script>
+    <script type  =  "text/javascript">
+	
+	    noise.seed(Math.random()); //Para crear mayas aleatorias-MAPA
+		
+		//Creación de la escena en la que se va a trabajar
+        var scene = new THREE.Scene();
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		document.body.appendChild( renderer.domElement );
+        var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1,1000);
+        var camera2 = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1,1000);
+		
+		/*
+		var groundBox = new THREE.BoxBufferGeometry(25, 1, 50);
+		var groundMesh = new THREE.MeshBasicMaterial({color : 0x00ff00});
+		var ground = new THREE.Mesh(groundBox, groundMesh);
+		scene.add(ground);
+		ground.position.y = -5;
+
+		// Creating the border lines for ground
+		var edges = new THREE.EdgesGeometry(groundBox);
+		var line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color : 0x000000}));
+		scene.add(line);
+		line.position.y = -5;
+		*/
+		
+		function Block(x,y,z){
+		
+		//Creacion de cubos
+		
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		
+		this.display = function(){
+		
+		var loader = new THREE.TextureLoader();
+		var materiales= []; 
+		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/lado.jpg')})); //Derecha
+		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/lado.jpg')})); //Izquierda
+		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/pasto.jpg')})); //Arriba
+		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/pasto.jpg')})); //Abajo
+		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/lado.jpg')})); //Frontal
+		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/lado.jpg')})); //Posterior
+		/*
+		materiales.push (new THREE.MeshBasicMaterial (map:'Texturas/Tierra/lado.jpg')); //Izquierda
+		materiales.push (new THREE.MeshBasicMaterial (map:'Texturas/Tierra/pasto.jpg')); //Arriba
+		materiales.push (new THREE.MeshBasicMaterial (map:'Texturas/Tierra/pasto.jpg')); //Abajo
+		materiales.push (new THREE.MeshBasicMaterial (map:'Texturas/Tierra/lado.jpg')); //frontal
+		materiales.push (new THREE.MeshBasicMaterial (map:'Texturas/Tierra/lado.jpg')); //posterior
+		*/
+		
+		var blockBox = new THREE.BoxBufferGeometry(5, 5, 5); //Cubo de 5x5x5
+		var blockMesh = materiales; //Material de los cubos - verde
+		var block = new THREE.Mesh(blockBox, blockMesh);// crear material
+		scene.add(block);
+		
+		block.position.x = this.x;
+		block.position.y = this.y - 10;
+		block.position.z = this.z;
+		
+		var edges = new THREE.EdgesGeometry(blockBox); //Linea
+		var line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color : 0xffffff})); //material de linea
+		scene.add(line);
+		line.position.x = this.x;
+		line.position.y = this.y - 10;
+		line.position.z = this.z;
+		
+		
+		     }
+		}
+		
+		
+		var w,h;
+		var startTime = Date.now();
+			var angSum =0;
+			var positivo = false;
+			var up = false;
+			var down = false;
+			var left = false;
+			var right = false;
+			var ThirdPerson = true;
+			var FirstPerson = false;
+			
+			var onKeyDown = function(event){
+					switch(event.keyCode){
+						case 87:
+							up = true;
+							break;
+						case 83:
+							down = true;
+							break;
+						case 65:
+							left = true;
+							break;
+						case 68:
+							right = true;
+							break;
+						case 67:
+							if(ThirdPerson){
+								ThirdPerson = false;
+								FirstPerson = true;
+							}
+							else{
+								ThirdPerson = true;
+								FirstPerson = false;
+							}
+					}
+				}
+				
+				var onKeyUp = function(event){
+					switch(event.keyCode){
+						case 87:
+							up = false;
+							break;
+						case 83:
+							down = false;
+							break;
+						case 65:
+							left = false;
+							break;
+						case 68:
+							right = false;
+							break;
+					}
+				}
+				
+				document.addEventListener( 'keydown', onKeyDown, false );
+				document.addEventListener( 'keyup', onKeyUp, false );
+		
+			
+		w = window.innerWidth;
+		h= window.innerHeight;
+		GenerateBody();
+		
+		camera.lookAt(0,6,1);
+		camera2.position.set(0,60,0);
+		camera2.lookAt(0,0,0);
+		camera2.rotateOnWorldAxis(new THREE.Vector3(0,1,0), THREE.Math.degToRad(180));
+		
+		
+		var blocks= [];
+		var v;
+		var xoff = 0;
+		var zoff = 0;
+		var inc = 0.03;
+		var alt = 10;
+		var chunk = 20;
+		for (var x=0; x<chunk; x++){
+		
+		     xoff =0;
+			 
+		     for(var z=0; z<chunk; z++){
+			 
+				 var v =Math.round( noise.perlin2(xoff,zoff) * alt / 5 )*5;
+				 blocks.push(new Block(x * 5 ,v ,z * 5));
+				 xoff = xoff + inc;
+				 
+			 }
+		
+		     zoff =zoff +inc;
+		
+		}
+		
+		for (var i=0; i < blocks.length; i++) {
+		
+		         blocks[i].display();
+		    
+		}
+		
+		//Mover la camara con el mouse
+		var controls = new THREE.PointerLockControls(camera, document.body);
+		document.body.addEventListener("click", function(){
+			controls.lock();
+		});
+		controls.addEventListener("lock", function(){});
+		controls.addEventListener("unlock", function(){});
+		function update(){
+		
+		
+		
+		}
+		
+		// Resize Window
+		window.addEventListener("resize", function(){
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+		
+        });
+		
+		function GenerateBody(){
+				var matCuerpo = new THREE.MeshBasicMaterial({color:0xff6b0f});
+				var matBrazo = new THREE.MeshBasicMaterial({color:0x9e5400});
+				geoCuerpo = new THREE.BoxGeometry(6,8,3);
+				geoBrazo = new THREE.BoxGeometry(3,8,3);
+				geoCabeza = new THREE.BoxGeometry(6,6,6);
+				
+				cuerpo = new THREE.Mesh(geoCuerpo,matCuerpo);
+				brazoI = new THREE.Mesh(geoBrazo,matBrazo);
+				brazoI.position.x+=4.5;
+				brazoD = brazoI.clone();
+				brazoD.position.x-=9;
+				piernaD = brazoI.clone();
+				piernaI = brazoI.clone();
+				piernaD.position.y-=8;
+				piernaI.position.y-=8;
+				piernaD.position.x-=6;
+				piernaI.position.x-=3;
+				cabeza = new THREE.Mesh(geoCabeza,matBrazo);
+				
+				
+				
+				
+
+				cuerpo.add(brazoI);
+				cuerpo.add(brazoD);
+				cuerpo.add(piernaD);
+				cuerpo.add(piernaI);
+				camera.add(cabeza);
+				cuerpo.add(camera);
+				cuerpo.add(camera2);
+				camera.position.y+=6;
+				scene.add(cuerpo);
+				var size = new THREE.Matrix4();
+				size.set(0.5,0,0,0,
+						 0,0.5,0,0,
+						 0,0,0.5,0,
+						 0,0,0,1);
+				cuerpo.applyMatrix(size);
+				
+				console.log(cuerpo.position);
+		}
+		
+		
+			
+		
+		function MoveBody(){
+			
+			
+			var dtime=Date.now()-startTime;
+			var tx=0,ty=0,tz=0;
+			var rotP=0;
+			var rot=0;
+			if(angSum>=60*Math.PI/180)
+					positivo=false;
+				if(angSum<=-60*Math.PI/180)
+					positivo=true;
+				
+				if(up){
+					tx=0; ty=0; tz=2;
+				if(positivo)
+					rotP = .1;
+				else
+					rotP = -.1;
+				}
+				if(down){
+					tx=0; ty=0; tz=-1;
+				if(positivo)
+					rotP = .1;
+				else
+					rotP = -.1;
+				}
+				angSum+=rotP;
+				
+				if(right)
+					rot=-.1;
+				if(left)
+					rot=.1;
+				
+				var t = new THREE.Matrix4();
+				t.set( 	1, 0, 0, tx,
+					0, 1, 0, ty, 
+					0, 0, 1, tz,
+					0, 0, 0, 1	);
+				cuerpo.matrix.multiply(t);
+				
+				var ct1 = Math.cos(rotP);
+				var ct2 = Math.cos(-rotP);
+				var cs = Math.cos(rot);
+				var st1 = Math.sin(rotP);
+				var st2 = Math.sin(-rotP);
+				var ss = Math.sin(rot);
+				var r = new THREE.Matrix4();
+				var r1 = new THREE.Matrix4();
+				var r2 = new THREE.Matrix4();
+				
+				r.set( 	   cs,  0, ss, 0,
+						0,  1,  0, 0, 
+						-ss,  0, cs, 0,
+						0,  0,  0, 1 );	
+					
+				r1.set( 	1,  0,  0, 0,
+						0, ct1,-st1, 0, 
+						0, st1, ct1, 0,
+						0,  0,  0, 1 );	
+				r2.set( 	1,  0,  0, 0,
+						0, ct2,-st2, 0, 
+						0, st2, ct2, 0,
+						0,  0,  0, 1 );
+			
+				var tempMatrix = new THREE.Matrix4();
+				tempMatrix.copyPosition(cuerpo.matrix);
+				cuerpo.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
+				cuerpo.applyMatrix(r);
+				cuerpo.applyMatrix( tempMatrix );
+				
+				
+				piernaI.applyMatrix(r1);
+				piernaD.applyMatrix(r2);
+				
+				var tempMatrix = new THREE.Matrix4();
+				tempMatrix.copyPosition(brazoI.matrix);
+				brazoI.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
+				brazoI.applyMatrix(r2);
+				brazoI.applyMatrix( tempMatrix );
+				
+				var tempMatrix = new THREE.Matrix4();
+				tempMatrix.copyPosition(brazoD.matrix);
+				brazoD.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
+				brazoD.applyMatrix(r1);
+				brazoD.applyMatrix( tempMatrix );
+				
+			
+		}
+		
+		function render(){
+		
+			renderer.setViewport( 0, 0, w, h );
+			renderer.setScissor( 0, 0, w, h );
+			renderer.render(scene,camera);
+			renderer.setViewport( 3*(w/4), 3*(h/4), w/4, h/4 );
+			renderer.setScissor( 3*(w/4), 3*(h/4), w/4, h/4 );
+			renderer.setScissorTest( true );
+			renderer.render(scene,camera2);
+			//camera2.lookAt(cuerpo.position);
+			MoveBody();
+		}
+		
+		function Gameloop(){
+		
+			requestAnimationFrame(Gameloop);
+			update();
+			render();
+		
+		}
+       
+		
+		Gameloop();
+    </script>
+  </body>
+</html>
