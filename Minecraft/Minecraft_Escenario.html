@@ -7,6 +7,7 @@
     </style>
   </head>
   <body>
+	<div id="info"> movimiento -> WASD <br/> inventario -> 1-9 <br/> Añadir bloque -> Click </div>
     <script src   =  "js/three.js"></script>
 	<script src   =  "js/perlin.js"></script>
 	<script src   =  "js/PointerLockControls.js"></script>
@@ -21,7 +22,7 @@
 		document.body.appendChild( renderer.domElement );
         var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1,1000);
         var camera2 = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1,1000);
-		
+		scene.background = new THREE.Color( 0x66cfe2);
 		/*
 		var groundBox = new THREE.BoxBufferGeometry(25, 1, 50);
 		var groundMesh = new THREE.MeshBasicMaterial({color : 0x00ff00});
@@ -47,20 +48,37 @@
 		this.display = function(){
 		
 		var loader = new THREE.TextureLoader();
+		
+		var texturaLado = new THREE.TextureLoader().load('./Texturas/Tierra/lado.jpg');
+		var texturaPasto = new THREE.TextureLoader().load('./Texturas/Tierra/pasto.jpg');
 		var materiales= []; 
-		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/lado.jpg')})); //Derecha
-		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/lado.jpg')})); //Izquierda
-		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/pasto.jpg')})); //Arriba
-		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/pasto.jpg')})); //Abajo
-		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/lado.jpg')})); //Frontal
-		materiales.push (new THREE.MeshBasicMaterial ({map:loader.load('Texturas/Tierra/lado.jpg')})); //Posterior
-		/*
-		materiales.push (new THREE.MeshBasicMaterial (map:'Texturas/Tierra/lado.jpg')); //Izquierda
-		materiales.push (new THREE.MeshBasicMaterial (map:'Texturas/Tierra/pasto.jpg')); //Arriba
-		materiales.push (new THREE.MeshBasicMaterial (map:'Texturas/Tierra/pasto.jpg')); //Abajo
-		materiales.push (new THREE.MeshBasicMaterial (map:'Texturas/Tierra/lado.jpg')); //frontal
-		materiales.push (new THREE.MeshBasicMaterial (map:'Texturas/Tierra/lado.jpg')); //posterior
-		*/
+		
+		
+		if(texturaLado.image == undefined){
+			materiales.push (new THREE.MeshBasicMaterial ({color: 0x5e4b12})); //Derecha
+			materiales.push (new THREE.MeshBasicMaterial ({color: 0x5e4b12})); //Izquierda
+		}
+		else{
+			materiales.push (new THREE.MeshBasicMaterial ({map:texturaLado})); //Derecha
+			materiales.push (new THREE.MeshBasicMaterial ({map:texturaLado})); //Izquierda
+		}
+		if(texturaPasto.image == undefined){
+			materiales.push (new THREE.MeshBasicMaterial ({color: 0x279b1e})); //arriba
+			materiales.push (new THREE.MeshBasicMaterial ({color: 0x5e4b12})); //abajo
+		}
+		else{
+			materiales.push (new THREE.MeshBasicMaterial ({map:texturaPasto})); //Arriba
+			materiales.push (new THREE.MeshBasicMaterial ({map:texturaPasto})); //Abajo
+		}
+		if(texturaLado.image == undefined){
+			materiales.push (new THREE.MeshBasicMaterial ({color: 0x5e4b12})); //frontal
+			materiales.push (new THREE.MeshBasicMaterial ({color: 0x5e4b12})); //posterior
+		}
+		else{
+			materiales.push (new THREE.MeshBasicMaterial ({map:texturaLado})); //Frontal
+			materiales.push (new THREE.MeshBasicMaterial ({map:texturaLado})); //Posterior
+		}
+		
 		
 		var blockBox = new THREE.BoxBufferGeometry(5, 5, 5); //Cubo de 5x5x5
 		var blockMesh = materiales; //Material de los cubos - verde
@@ -91,73 +109,41 @@
 			var down = false;
 			var left = false;
 			var right = false;
-			var ThirdPerson = true;
-			var FirstPerson = false;
+			var raycaster = new THREE.Raycaster();
+			var vector = new THREE.Vector3( 0, 0, 0 );
+			var direction = new THREE.Vector3( 0, 0, -1 ).transformDirection( camera.matrixWorld );
+			var I1 = true;
+			var I2 = false;
+			var I3 = false;
+			var I4 = false;
+			var I5 = false;
+			var I6 = false;
+			var I7 = false;
+			var I8 = false;
+			var I9 = false;
+			var inv1, inv2, inv3, inv4, inv5, inv6, inv7, inv8, inv9;
 			
-			var onKeyDown = function(event){
-					switch(event.keyCode){
-						case 87:
-							up = true;
-							break;
-						case 83:
-							down = true;
-							break;
-						case 65:
-							left = true;
-							break;
-						case 68:
-							right = true;
-							break;
-						case 67:
-							if(ThirdPerson){
-								ThirdPerson = false;
-								FirstPerson = true;
-							}
-							else{
-								ThirdPerson = true;
-								FirstPerson = false;
-							}
-					}
-				}
-				
-				var onKeyUp = function(event){
-					switch(event.keyCode){
-						case 87:
-							up = false;
-							break;
-						case 83:
-							down = false;
-							break;
-						case 65:
-							left = false;
-							break;
-						case 68:
-							right = false;
-							break;
-					}
-				}
-				
-				document.addEventListener( 'keydown', onKeyDown, false );
-				document.addEventListener( 'keyup', onKeyUp, false );
-		
+			
+			
+			
 			
 		w = window.innerWidth;
 		h= window.innerHeight;
 		GenerateBody();
 		
 		camera.lookAt(0,6,1);
-		camera2.position.set(0,60,0);
-		camera2.lookAt(0,0,0);
-		camera2.rotateOnWorldAxis(new THREE.Vector3(0,1,0), THREE.Math.degToRad(180));
+		camera2.position.set(5,-500,5);
+		camera2.lookAt(inv1.position);
 		
 		
 		var blocks= [];
+		var objects = [];
 		var v;
 		var xoff = 0;
 		var zoff = 0;
-		var inc = 0.03;
-		var alt = 10;
-		var chunk = 20;
+		var inc = 0.025;
+		var alt = 100;
+		var chunk = 30;
 		for (var x=0; x<chunk; x++){
 		
 		     xoff =0;
@@ -179,17 +165,266 @@
 		         blocks[i].display();
 		    
 		}
+		objects.push( blocks );
+		console.log(objects);
+		var keys = [];
+		document.addEventListener("keydown", function(e){
+			keys.push(e.key);
+			if(e.key == " " ){
+				vely = -2.5;
+			}
+		});
+		document.addEventListener("keyup", function(e){
+			var newArr = [];
+			for(var i = 0; i < keys.length; i++){
+				if(keys[i] != e.key){
+					newArr.push(keys[i]);
+				}
+			}
+			keys = newArr;
+		});
 		
-		//Mover la camara con el mouse
-		var controls = new THREE.PointerLockControls(camera, document.body);
+		var controls = new THREE.PointerLockControls(camera,document.body);
 		document.body.addEventListener("click", function(){
 			controls.lock();
 		});
-		controls.addEventListener("lock", function(){});
-		controls.addEventListener("unlock", function(){});
+		controls.addEventListener("lock", function(){
+
+		});
+		controls.addEventListener("unlock", function(){
+
+		});
+		
+		var vel = 0.4;
+		var vely =0;
+		var acc = 0.18 	;
 		function update(){
 		
+		if(keys.includes("w")){
+		    controls.moveForward(vel);
+		}
+		if(keys.includes("a")){
+		    controls.moveRight(-1*vel);
+		}
+		if(keys.includes("s")){
+		    controls.moveForward(-1*vel);
+		}
+		if(keys.includes("d")){
+		    controls.moveRight(vel);
+		}
+		if(keys.includes("1")){
+		    I1=true;
+		    I2=false;
+		    I3=false;
+		    I4=false;
+		    I5=false;
+		    I6=false;
+		    I7=false;
+		    I8=false;
+		    I9=false;
+		}
+		if(keys.includes("2")){
+		    I1=false;
+		    I2=true;
+		    I3=false;
+		    I4=false;
+		    I5=false;
+		    I6=false;
+		    I7=false;
+		    I8=false;
+		    I9=false;
+		}
+		if(keys.includes("3")){
+		    I1=false;
+		    I2=false;
+		    I3=true;
+		    I4=false;
+		    I5=false;
+		    I6=false;
+		    I7=false;
+		    I8=false;
+		    I9=false;
+		}
+		if(keys.includes("4")){
+		    I1=false;
+		    I2=false;
+		    I3=false;
+		    I4=true;
+		    I5=false;
+		    I6=false;
+		    I7=false;
+		    I8=false;
+		    I9=false;
+		}
+		if(keys.includes("5")){
+		    I1=false;
+		    I2=false;
+		    I3=false;
+		    I4=false;
+		    I5=true;
+		    I6=false;
+		    I7=false;
+		    I8=false;
+		    I9=false;
+		}
+		if(keys.includes("6")){
+		    I1=false;
+		    I2=false;
+		    I3=false;
+		    I4=false;
+		    I5=false;
+		    I6=true;
+		    I7=false;
+		    I8=false;
+		    I9=false;
+		}
+		if(keys.includes("7")){
+		    I1=false;
+		    I2=false;
+		    I3=false;
+		    I4=false;
+		    I5=false;
+		    I6=false;
+		    I7=true;
+		    I8=false;
+		    I9=false;
+		}
+		if(keys.includes("8")){
+		    I1=false;
+		    I2=false;
+		    I3=false;
+		    I4=false;
+		    I5=false;
+		    I6=false;
+		    I7=false;
+		    I8=true;
+		    I9=false;
+		}
+		if(keys.includes("9")){
+		    I1=false;
+		    I2=false;
+		    I3=false;
+		    I4=false;
+		    I5=false;
+		    I6=false;
+		    I7=false;
+		    I8=false;
+		    I9=true;
+		}
 		
+		camera.position.y = camera.position.y - vely; 
+		vely = vely + acc;
+		
+		for(var i=0; i< blocks.length; i++){
+		     if(camera.position.x <= blocks[i].x +5 && camera.position.x >= blocks[i].x &&
+			    camera.position.z <= blocks[i].z + 5 && camera.position.z >= blocks[i].z){
+		     if(camera.position.y < blocks[i].y){
+			     camera.position.y = blocks[i].y; 
+				 vely =0;
+			 }
+		  } 
+		}
+		
+		if(I1){
+			scene.add(inv1);
+			scene.remove(inv2);
+			scene.remove(inv3);
+			scene.remove(inv4);
+			scene.remove(inv5);
+			scene.remove(inv6);
+			scene.remove(inv7);
+			scene.remove(inv8);
+			scene.remove(inv9);
+		}
+		if(I2){
+			scene.remove(inv1);
+			scene.add(inv2);
+			scene.remove(inv3);
+			scene.remove(inv4);
+			scene.remove(inv5);
+			scene.remove(inv6);
+			scene.remove(inv7);
+			scene.remove(inv8);
+			scene.remove(inv9);
+		}
+		if(I3){
+			scene.remove(inv1);
+			scene.remove(inv2);
+			scene.add(inv3);
+			scene.remove(inv4);
+			scene.remove(inv5);
+			scene.remove(inv6);
+			scene.remove(inv7);
+			scene.remove(inv8);
+			scene.remove(inv9);
+		}
+		if(I4){
+			scene.remove(inv1);
+			scene.remove(inv2);
+			scene.remove(inv3);
+			scene.add(inv4);
+			scene.remove(inv5);
+			scene.remove(inv6);
+			scene.remove(inv7);
+			scene.remove(inv8);
+			scene.remove(inv9);
+		}
+		if(I5){
+			scene.remove(inv1);
+			scene.remove(inv2);
+			scene.remove(inv3);
+			scene.remove(inv4);
+			scene.add(inv5);
+			scene.remove(inv6);
+			scene.remove(inv7);
+			scene.remove(inv8);
+			scene.remove(inv9);
+		}
+		if(I6){
+			scene.remove(inv1);
+			scene.remove(inv2);
+			scene.remove(inv3);
+			scene.remove(inv4);
+			scene.remove(inv5);
+			scene.add(inv6);
+			scene.remove(inv7);
+			scene.remove(inv8);
+			scene.remove(inv9);
+		}
+		if(I7){
+			scene.remove(inv1);
+			scene.remove(inv2);
+			scene.remove(inv3);
+			scene.remove(inv4);
+			scene.remove(inv5);
+			scene.remove(inv6);
+			scene.add(inv7);
+			scene.remove(inv8);
+			scene.remove(inv9);
+		}
+		if(I8){
+			scene.remove(inv1);
+			scene.remove(inv2);
+			scene.remove(inv3);
+			scene.remove(inv4);
+			scene.remove(inv5);
+			scene.remove(inv6);
+			scene.remove(inv7);
+			scene.add(inv8);
+			scene.remove(inv9);
+		}
+		if(I9){
+			scene.remove(inv1);
+			scene.remove(inv2);
+			scene.remove(inv3);
+			scene.remove(inv4);
+			scene.remove(inv5);
+			scene.remove(inv6);
+			scene.remove(inv7);
+			scene.remove(inv8);
+			scene.add(inv9);
+		}
+				
 		
 		}
 		
@@ -201,152 +436,105 @@
 		
         });
 		
+		document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+		
+		function onDocumentMouseDown( event ) {
+				event.preventDefault();
+				
+				var direction = new THREE.Vector3( 0, 0, -1 ).transformDirection( camera.matrixWorld )
+				
+				raycaster.set( camera.getWorldPosition(), camera.getWorldDirection() );
+				var intersects = raycaster.intersectObjects( scene.children );
+				
+				if ( intersects.length > 0 ) {
+					var intersect = intersects[ 0 ];
+					var voxel = new THREE.Mesh();
+					if(I1){
+						voxel = inv1.clone();
+					}
+					if(I2){
+						voxel = inv2.clone();
+					}
+					if(I3){
+						voxel = inv3.clone();
+					}
+					if(I4){
+						voxel = inv4.clone();
+					}
+					if(I5){
+						voxel = inv5.clone();
+					}
+					if(I6){
+						voxel = inv6.clone();
+					}
+					if(I7){
+						voxel = inv7.clone();
+					}
+					if(I8){
+						voxel = inv8.clone();
+					}
+					if(I9){
+						voxel = inv9.clone();
+					}
+					voxel.position.copy( intersect.point );
+					voxel.position.y+=2.5;
+					scene.add( voxel );
+					blocks.push( voxel );
+				}
+		}
+		
 		function GenerateBody(){
-				var matCuerpo = new THREE.MeshBasicMaterial({color:0xff6b0f});
-				var matBrazo = new THREE.MeshBasicMaterial({color:0x9e5400});
-				geoCuerpo = new THREE.BoxGeometry(6,8,3);
-				geoBrazo = new THREE.BoxGeometry(3,8,3);
-				geoCabeza = new THREE.BoxGeometry(6,6,6);
+				var mat1 = new THREE.MeshBasicMaterial({color:0x9e9e9e});
+				var shape1 = new THREE.BoxGeometry(5,5,5);
+				var mat2 = new THREE.MeshBasicMaterial({color:0x855e00});
+				var shape3 = new THREE.SphereGeometry(5,32,32);
+				var mat3 = new THREE.MeshBasicMaterial({color: 0xff1b11});
+				var shape4 = new THREE.OctahedronGeometry(5);
+				var mat4 = new THREE.MeshBasicMaterial({color:0xededed});
+				var shape5 = new THREE.IcosahedronGeometry(5);
+				var mat5 = new THREE.MeshBasicMaterial({color:0x1900ab});
+				var shape6 = new THREE.CylinderGeometry(2.5,2.5,5,32);
+				var mat6 = new THREE.MeshBasicMaterial({color:0x149500});
+				var shape7 = new THREE.ConeGeometry(2.5,5,32);
+				var mat7 = new THREE.MeshBasicMaterial({color:0x557387});
+				var shape8 = new THREE.TorusGeometry(2,0.5,32);
+				var mat8 = new THREE.MeshBasicMaterial({color:0x16ffa8});
+				var mat9 = new THREE.MeshBasicMaterial({color:0x000000});
+				inv1 = new THREE.Mesh(shape1,mat1);
+				inv2 = new THREE.Mesh(shape1,mat2);
+				inv3 = new THREE.Mesh(shape3,mat3);
+				inv4 = new THREE.Mesh(shape4,mat4);
+				inv5 = new THREE.Mesh(shape5,mat5);
+				inv6 = new THREE.Mesh(shape6,mat6);
+				inv7 = new THREE.Mesh(shape7,mat7);
+				inv8 = new THREE.Mesh(shape8,mat8);
+				inv9 = new THREE.Mesh(shape3,mat9);
+				inv1.position.set(0,-500,0);
+				inv2.position.set(0,-500,0);
+				inv3.position.set(0,-500,0);
+				inv4.position.set(0,-500,0);
+				inv5.position.set(0,-500,0);
+				inv6.position.set(0,-500,0);
+				inv7.position.set(0,-500,0);
+				inv8.position.set(0,-500,0);
+				inv9.position.set(0,-500,0);
+				scene.add(inv1);
+				camera2.lookAt(inv1);
 				
-				cuerpo = new THREE.Mesh(geoCuerpo,matCuerpo);
-				brazoI = new THREE.Mesh(geoBrazo,matBrazo);
-				brazoI.position.x+=4.5;
-				brazoD = brazoI.clone();
-				brazoD.position.x-=9;
-				piernaD = brazoI.clone();
-				piernaI = brazoI.clone();
-				piernaD.position.y-=8;
-				piernaI.position.y-=8;
-				piernaD.position.x-=6;
-				piernaI.position.x-=3;
-				cabeza = new THREE.Mesh(geoCabeza,matBrazo);
-				
-				
-				
-				
-
-				cuerpo.add(brazoI);
-				cuerpo.add(brazoD);
-				cuerpo.add(piernaD);
-				cuerpo.add(piernaI);
-				camera.add(cabeza);
-				cuerpo.add(camera);
-				cuerpo.add(camera2);
-				camera.position.y+=6;
-				scene.add(cuerpo);
-				var size = new THREE.Matrix4();
-				size.set(0.5,0,0,0,
-						 0,0.5,0,0,
-						 0,0,0.5,0,
-						 0,0,0,1);
-				cuerpo.applyMatrix(size);
-				
-				console.log(cuerpo.position);
 		}
 		
 		
 			
-		
-		function MoveBody(){
-			
-			
-			var dtime=Date.now()-startTime;
-			var tx=0,ty=0,tz=0;
-			var rotP=0;
-			var rot=0;
-			if(angSum>=60*Math.PI/180)
-					positivo=false;
-				if(angSum<=-60*Math.PI/180)
-					positivo=true;
-				
-				if(up){
-					tx=0; ty=0; tz=2;
-				if(positivo)
-					rotP = .1;
-				else
-					rotP = -.1;
-				}
-				if(down){
-					tx=0; ty=0; tz=-1;
-				if(positivo)
-					rotP = .1;
-				else
-					rotP = -.1;
-				}
-				angSum+=rotP;
-				
-				if(right)
-					rot=-.1;
-				if(left)
-					rot=.1;
-				
-				var t = new THREE.Matrix4();
-				t.set( 	1, 0, 0, tx,
-					0, 1, 0, ty, 
-					0, 0, 1, tz,
-					0, 0, 0, 1	);
-				cuerpo.matrix.multiply(t);
-				
-				var ct1 = Math.cos(rotP);
-				var ct2 = Math.cos(-rotP);
-				var cs = Math.cos(rot);
-				var st1 = Math.sin(rotP);
-				var st2 = Math.sin(-rotP);
-				var ss = Math.sin(rot);
-				var r = new THREE.Matrix4();
-				var r1 = new THREE.Matrix4();
-				var r2 = new THREE.Matrix4();
-				
-				r.set( 	   cs,  0, ss, 0,
-						0,  1,  0, 0, 
-						-ss,  0, cs, 0,
-						0,  0,  0, 1 );	
-					
-				r1.set( 	1,  0,  0, 0,
-						0, ct1,-st1, 0, 
-						0, st1, ct1, 0,
-						0,  0,  0, 1 );	
-				r2.set( 	1,  0,  0, 0,
-						0, ct2,-st2, 0, 
-						0, st2, ct2, 0,
-						0,  0,  0, 1 );
-			
-				var tempMatrix = new THREE.Matrix4();
-				tempMatrix.copyPosition(cuerpo.matrix);
-				cuerpo.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
-				cuerpo.applyMatrix(r);
-				cuerpo.applyMatrix( tempMatrix );
-				
-				
-				piernaI.applyMatrix(r1);
-				piernaD.applyMatrix(r2);
-				
-				var tempMatrix = new THREE.Matrix4();
-				tempMatrix.copyPosition(brazoI.matrix);
-				brazoI.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
-				brazoI.applyMatrix(r2);
-				brazoI.applyMatrix( tempMatrix );
-				
-				var tempMatrix = new THREE.Matrix4();
-				tempMatrix.copyPosition(brazoD.matrix);
-				brazoD.applyMatrix( new THREE.Matrix4().getInverse(tempMatrix) );
-				brazoD.applyMatrix(r1);
-				brazoD.applyMatrix( tempMatrix );
-				
-			
-		}
 		
 		function render(){
 		
 			renderer.setViewport( 0, 0, w, h );
 			renderer.setScissor( 0, 0, w, h );
 			renderer.render(scene,camera);
-			renderer.setViewport( 3*(w/4), 3*(h/4), w/4, h/4 );
-			renderer.setScissor( 3*(w/4), 3*(h/4), w/4, h/4 );
+			renderer.setViewport( 0, 0, w/5, h/5 );
+			renderer.setScissor( 0, 0, w/5, h/5 );
 			renderer.setScissorTest( true );
 			renderer.render(scene,camera2);
-			//camera2.lookAt(cuerpo.position);
-			MoveBody();
 		}
 		
 		function Gameloop(){
